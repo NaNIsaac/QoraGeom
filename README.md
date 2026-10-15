@@ -4,11 +4,23 @@ Detector geometry for X-ray scattering: computing the lab-frame q vector of an a
 
 ## Status
 
-Early stage. The repository holds only this README, the license and the citation file; no code has been published yet. The planned first version is a small NumPy module that:
+Early draft. The geometry code currently lives in `main.py`; the `qorageom` package under `src/` is still an empty stub. `main.py` defines:
 
-- places the detector from its distance and two rotation angles relative to the incident beam,
-- returns the pixel x/y directions on the detector plane,
-- converts a pixel index to q (1/Å) in the lab frame for a given beam energy.
+- `detector_pose(distance_m, incident_dir, scatter_up, up_angle_deg, side_angle_deg)`: detector center position and the pixel x/y directions, from the sample-detector distance and two rotations of the detector arm (up, then sideways) relative to the incident beam,
+- `pixel_to_q_lab(energy_kev, incident_dir, center_pos, pixel_x_dir, pixel_y_dir, pixel_size_m, px, py)`: q = k_f - k_i in 1/Å (lab frame) for pixel offset (px, py) from the detector center,
+- `rotate(vector, axis, angle_deg)`: Rodrigues rotation.
+
+## Usage
+
+Requires Python 3.14 and [uv](https://docs.astral.sh/uv/).
+
+```bash
+git clone https://github.com/NaNIsaac/QoraGeom.git
+cd QoraGeom
+uv run python main.py
+```
+
+This prints the detector pose and the q vector of pixel (1, 1) for an 8.04 keV beam, a 1 m detector distance and a 30° up angle.
 
 ## Citation
 
