@@ -7,8 +7,10 @@ authors:
     given-names: Isaac
     email: isaacyong@naver.com
     affiliation: "Sogang University"
+license: MIT
 repository-code: "https://github.com/NaNIsaac/QoraGeom"
 abstract: "Detector geometry for X-ray scattering: computes the lab-frame q vector of a detector pixel from beam energy, detector distance and detector angles."
+license: MIT
 keywords:
   - "X-ray scattering"
   - "detector geometry"
