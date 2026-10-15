@@ -1,29 +1,19 @@
 # QoraGeom
 
-Detector geometry for X-ray scattering: compute the lab-frame q vector of a detector pixel from beam energy, detector distance and detector angles. Early stage; the code currently lives in `main.py`.
+Detector geometry for X-ray scattering: computing the lab-frame q vector of an area-detector pixel from beam energy, sample-detector distance, detector angles and pixel size.
 
-## Usage
+## Status
 
-```
-uv run main.py
-```
+Early stage. The repository holds only this README, the license and the citation file; no code has been published yet. The planned first version is a small NumPy module that:
 
-`main.py` provides:
+- places the detector from its distance and two rotation angles relative to the incident beam,
+- returns the pixel x/y directions on the detector plane,
+- converts a pixel index to q (1/Å) in the lab frame for a given beam energy.
 
-- `rotate(vector, axis, angle_deg)` - Rodrigues rotation
-- `detector_pose(distance_m, incident_dir, scatter_up, up_angle_deg, side_angle_deg)` - detector center position and pixel x/y directions
-- `pixel_to_q_lab(energy_kev, incident_dir, center_pos, pixel_x_dir, pixel_y_dir, pixel_size_m, px, py)` - q (1/Angstrom) of pixel (px, py) relative to the detector center
+## Citation
 
-Example from `main()`:
+See [CITATION.cff](CITATION.cff).
 
-```python
-center_pos, px_dir, py_dir = detector_pose(
-    distance_m=1.0, incident_dir=[1, 0, 0], scatter_up=[0, 1, 0],
-    up_angle_deg=30, side_angle_deg=0,
-)
-q = pixel_to_q_lab(8.04, [1, 0, 0], center_pos, px_dir, py_dir, 55e-6, px=1, py=1)
-```
+## License
 
-## Requirements
-
-Python >= 3.14, numpy.
+MIT, see [LICENSE](LICENSE).
