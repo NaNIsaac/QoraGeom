@@ -1,0 +1,18 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+type: software
+title: "QoraGeom: Detector geometry for X-ray scattering: lab-frame q vector of a detector pixel"
+authors:
+  - family-names: Yong
+    given-names: Isaac
+    email: isaacyong@naver.com
+    affiliation: "Sogang University"
+repository-code: "https://github.com/NaNIsaac/QoraGeom"
+abstract: "Detector geometry for X-ray scattering: computes the lab-frame q vector of a detector pixel from beam energy, detector distance and detector angles."
+keywords:
+  - "X-ray scattering"
+  - "detector geometry"
+  - "reciprocal space"
+  - "q vector"
+version: "0.1.0"
+date-released: "2026-10-15"
