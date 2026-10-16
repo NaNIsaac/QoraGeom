@@ -1,3 +1,27 @@
-from qorageom.geometry import HC_KEV_ANGSTROM, detector_pose, pixel_to_q_lab, rotate
+from qorageom.geometry import (
+    HC_KEV_ANGSTROM,
+    detector_pose,
+    pixel_to_q_lab,
+    q_to_tth,
+    rotate,
+    rotation_matrix,
+    shear_correction,
+    tth_map,
+    tth_to_d,
+    tth_to_q,
+    wavelength,
+)
 
-__all__ = ["HC_KEV_ANGSTROM", "detector_pose", "pixel_to_q_lab", "rotate"]
+__all__ = [
+    "HC_KEV_ANGSTROM",
+    "detector_pose",
+    "pixel_to_q_lab",
+    "q_to_tth",
+    "rotate",
+    "rotation_matrix",
+    "shear_correction",
+    "tth_map",
+    "tth_to_d",
+    "tth_to_q",
+    "wavelength",
+]
