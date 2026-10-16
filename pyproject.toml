@@ -1,13 +1,19 @@
 [project]
 name = "qorageom"
 version = "0.1.0"
-description = "Detector geometry for X-ray scattering: lab-frame q vector of a detector pixel"
+description = "X-ray diffraction geometry (2θ, q, d, detector pixel q, BCDI reciprocal basis), SPEC parser and detector frame loaders"
 readme = "README.md"
 authors = [{ name = "Isaac Yong", email = "isaacyong@naver.com" }]
-requires-python = ">=3.14"
+requires-python = ">=3.13"
 dependencies = [
-    "numpy>=2.5.2",
+    "numpy>=2.4",
+    "scipy>=1.17",
 ]
+
+[project.optional-dependencies]
+h5 = ["h5py>=3.12"]
+tiff = ["tifffile>=2025.1"]
+pandas = ["pandas>=2.2"]
 
 [project.urls]
 Homepage = "https://github.com/NaNIsaac/QoraGeom"
@@ -16,3 +22,11 @@ Repository = "https://github.com/NaNIsaac/QoraGeom"
 [build-system]
 requires = ["uv_build>=0.11.32,<0.12.0"]
 build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "h5py>=3.12",
+    "pandas>=2.2",
+    "pytest>=9.0",
+    "tifffile>=2025.1",
+]
