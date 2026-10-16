@@ -1,7 +1,7 @@
 cff-version: 1.2.0
 message: "If you use this software, please cite it as below."
 type: software
-title: "QoraGeom: Detector geometry for X-ray scattering: lab-frame q vector of a detector pixel"
+title: "QoraGeom: X-ray diffraction geometry, SPEC parser and detector frame loaders"
 authors:
   - family-names: Yong
     given-names: Isaac
@@ -9,7 +9,7 @@ authors:
     affiliation: "Sogang University"
 license: MIT
 repository-code: "https://github.com/NaNIsaac/QoraGeom"
-abstract: "Detector geometry for X-ray scattering: computes the lab-frame q vector of a detector pixel from beam energy, detector distance and detector angles."
+abstract: "Shared core for X-ray diffraction analysis: 2theta/q/d conversions, detector pixel q in the lab frame, the BCDI reciprocal basis, a SPEC scan-file parser and loaders for .mat, TIFF and HDF5 detector frames."
 keywords:
   - "X-ray scattering"
   - "detector geometry"
