@@ -30,3 +30,6 @@ dev = [
     "pytest>=9.0",
     "tifffile>=2025.1",
 ]
+
+[tool.ruff]
+line-length = 100
