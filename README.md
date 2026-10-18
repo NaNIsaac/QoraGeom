@@ -2,28 +2,18 @@
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 
-**Shared core for X-ray diffraction analysis: detector and scattering geometry, SPEC parsing and detector-frame loaders.**
+**X-ray diffraction geometry, SPEC parsing and detector-frame loaders for Python.**
 
-numpy and scipy only; h5py, tifffile and pandas are optional and imported only by the functions that need them.
-
-## Modules
-
-`qorageom.geometry` (also exported from `qorageom`):
-
-- `HC_KEV_ANGSTROM`, `wavelength(energy_kev)`: λ [Å] from photon energy,
-- `tth_to_q`, `q_to_tth`, `tth_to_d`: 2θ [deg] ↔ |q| [1/Å] ↔ d [Å] at a given λ,
-- `tth_map(shape, pixel_m, sdd_m, xc, yc, alpha_deg)`: true 2θ of every pixel of a flat detector on a tilted arm,
-- `detector_pose`, `pixel_to_q_lab`: detector center/pixel directions from arm angles, and the lab-frame q of a pixel,
-- `rotate`, `rotation_matrix`: Rodrigues rotation (vector and matrix form),
-- `shear_correction(wavelength, delta_theta, D, gamma, delta, pixel_size)`: BCDI reciprocal basis `B_recip` (34-ID-C convention), `q = B_recip @ (i, j, k)` for detector pixel (i, j) and rocking step k.
-
-`qorageom.spec`: `Spec`, `SpecScan`. Reads `#O/#P` motor positions, `#D` time, `#L` columns and data, and `#UXML` metadata (`scan.sdd`, `scan.rois`, `scan.beam_center`). `scan.to_dataframe()` needs pandas.
-
-`qorageom.io`: `load_mat` (.mat `data` (y, x, frame) → (frame, y, x)), `load_tif_stack`, `load_h5`, `dump_h5` (print every group/dataset with shape, dtype and attributes).
+QoraGeom handles the geometry and file-reading steps of analysing X-ray
+diffraction data from area detectors. It converts between photon energy,
+wavelength, 2θ, |q| and d-spacing, computes the true 2θ and lab-frame q of every
+pixel of a flat detector on a tilted arm, builds the BCDI reciprocal-space basis
+for a rocking scan, reads SPEC data files and loads detector frames from .mat,
+TIFF and HDF5.
 
 ## Install
 
-Requires Python 3.13+. Not on PyPI; install from git:
+Requires Python 3.13+ with numpy and scipy; h5py, tifffile and pandas are optional extras. Not on PyPI; install from git:
 
 ```bash
 uv add "qorageom @ git+https://github.com/NaNIsaac/QoraGeom"
@@ -66,6 +56,21 @@ pixel_x_dir: [ 0.  0. -1.]
 pixel_y_dir: [-0.5        0.8660254  0.       ]
 q_lab:       [-5.45985588e-01  2.03742181e+00 -2.24095052e-04]
 ```
+
+## Modules
+
+`qorageom.geometry` (also exported from `qorageom`):
+
+- `HC_KEV_ANGSTROM`, `wavelength(energy_kev)`: λ [Å] from photon energy,
+- `tth_to_q`, `q_to_tth`, `tth_to_d`: 2θ [deg] ↔ |q| [1/Å] ↔ d [Å] at a given λ,
+- `tth_map(shape, pixel_m, sdd_m, xc, yc, alpha_deg)`: true 2θ of every pixel of a flat detector on a tilted arm,
+- `detector_pose`, `pixel_to_q_lab`: detector center/pixel directions from arm angles, and the lab-frame q of a pixel,
+- `rotate`, `rotation_matrix`: Rodrigues rotation (vector and matrix form),
+- `shear_correction(wavelength, delta_theta, D, gamma, delta, pixel_size)`: BCDI reciprocal basis `B_recip` (34-ID-C convention), `q = B_recip @ (i, j, k)` for detector pixel (i, j) and rocking step k.
+
+`qorageom.spec`: `Spec`, `SpecScan`. Reads `#O/#P` motor positions, `#D` time, `#L` columns and data, and `#UXML` metadata (`scan.sdd`, `scan.rois`, `scan.beam_center`). `scan.to_dataframe()` needs pandas.
+
+`qorageom.io`: `load_mat` (.mat `data` (y, x, frame) → (frame, y, x)), `load_tif_stack`, `load_h5`, `dump_h5` (print every group/dataset with shape, dtype and attributes).
 
 ## Tests
 
