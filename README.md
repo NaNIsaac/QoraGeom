@@ -1,6 +1,10 @@
 # QoraGeom
 
-Shared core for X-ray diffraction analysis: detector and scattering geometry, a SPEC scan-file parser, and loaders for detector frames. numpy and scipy only; h5py, tifffile and pandas are optional and imported only by the functions that need them.
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
+
+**Shared core for X-ray diffraction analysis: detector and scattering geometry, SPEC parsing and detector-frame loaders.**
+
+numpy and scipy only; h5py, tifffile and pandas are optional and imported only by the functions that need them.
 
 ## Modules
 
