@@ -33,7 +33,7 @@ def tth_map(shape, pixel_m, sdd_m, xc, yc, alpha_deg=0.0):
       P = SDD·n + u·ex + v·ev,  n = (0, sinα, cosα),  ev = (0, cosα, -sinα)
       cos 2θ = (SDD·cosα - v·sinα) / sqrt(SDD² + u² + v²)
     """
-    y, x = np.mgrid[: shape[0], : shape[1]]
+    y, x = np.ogrid[: shape[0], : shape[1]]
     u = (x - xc) * pixel_m
     v = (yc - y) * pixel_m
     a = np.deg2rad(alpha_deg)
@@ -89,10 +89,16 @@ def pixel_to_q_lab(
     px,
     py,
 ):
-    """검출기 중심 기준 픽셀 (px, py)의 q를 실험실 좌표로 계산한다."""
+    """Lab-frame q [1/Å] of pixel (px, py), counted from the detector center.
+
+    ``px`` and ``py`` may be arrays that broadcast together; q is then stacked along a
+    trailing axis of length 3.
+    """
     incident = np.asarray(incident_dir, dtype=float)
     incident = incident / np.linalg.norm(incident)
 
+    px = np.asarray(px, dtype=float)[..., None]
+    py = np.asarray(py, dtype=float)[..., None]
     pixel_pos = (
         np.asarray(center_pos, dtype=float)
         + pixel_size_m * px * np.asarray(pixel_x_dir, dtype=float)
@@ -101,7 +107,7 @@ def pixel_to_q_lab(
 
     k = tau * energy_kev / HC_KEV_ANGSTROM  # [Å^-1]
     ki = k * incident
-    kf = k * pixel_pos / np.linalg.norm(pixel_pos)
+    kf = k * pixel_pos / np.linalg.norm(pixel_pos, axis=-1, keepdims=True)
     return kf - ki
 
 

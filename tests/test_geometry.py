@@ -82,3 +82,13 @@ def test_pixel_to_q_lab_center_matches_tth_to_q():
 def test_detector_pose_rejects_non_perpendicular():
     with pytest.raises(ValueError):
         detector_pose(1.0, [1, 0, 0], [1, 1, 0], 10, 0)
+
+
+def test_pixel_to_q_lab_array_matches_per_pixel():
+    center, x_dir, y_dir = detector_pose(1.0, [1, 0, 0], [0, 1, 0], up_angle_deg=30, side_angle_deg=10)
+    args = (8.04, [1, 0, 0], center, x_dir, y_dir, 55e-6)
+    py, px = np.mgrid[-2:3, -3:4]
+    q = pixel_to_q_lab(*args, px, py)
+    assert q.shape == (5, 7, 3)
+    for i, j in np.ndindex(px.shape):
+        np.testing.assert_array_equal(q[i, j], pixel_to_q_lab(*args, px[i, j], py[i, j]))
