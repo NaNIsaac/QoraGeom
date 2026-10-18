@@ -149,6 +149,11 @@ class Spec:
                 else:
                     tag = line.split(" ", 1)[0]
                     self.file_metadata[tag] = line[len(tag):].strip()
+            elif not line.startswith("#"):
+                try:
+                    current_scan.data.append(list(map(float, line.split())))
+                except ValueError:
+                    pass
             elif line.startswith("#D "):
                 current_scan.time = datetime.strptime(line[3:], "%a %b %d %H:%M:%S %Y")
             elif line.startswith("#L "):
@@ -161,14 +166,9 @@ class Spec:
                 xml_content = re.sub(r"^#UXML\s*", "", line)
                 if xml_content:
                     current_scan._raw_uxml.append(xml_content)
-            elif line.startswith("#"):
+            else:
                 tag = line.split(" ", 1)[0]
                 current_scan.metadata[tag] = line[len(tag):].strip()
-            else:
-                try:
-                    current_scan.data.append([float(x) for x in line.split()])
-                except ValueError:
-                    pass
 
     def get_scan(self, scan_no: int) -> SpecScan:
         if not self.scans:
