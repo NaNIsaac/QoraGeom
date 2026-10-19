@@ -24,6 +24,7 @@ requires = ["uv_build>=0.11.32,<0.12.0"]
 build-backend = "uv_build"
 
 [dependency-groups]
+examples = ["qoraphase"]
 dev = [
     "h5py>=3.12",
     "pandas>=2.2",
@@ -40,3 +41,6 @@ line-length = 100
 "src/qorageom/spec.py" = ["PYI034"]
 "tests/conftest.py" = ["I001"]
 "tests/test_spec.py" = ["I001"]
+
+[tool.uv.sources]
+qoraphase = { git = "https://github.com/NaNIsaac/QoraPhase" }

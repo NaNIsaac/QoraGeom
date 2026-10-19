@@ -153,6 +153,23 @@ q_lab:       [-5.45985588e-01  2.03742181e+00 -2.24095052e-04]
 
 `qorageom.io`: `load_mat` (.mat `data` (y, x, frame) → (frame, y, x)), `load_tif_stack`, `load_h5`, `dump_h5` (print every group/dataset with shape, dtype and attributes).
 
+## From diffraction pattern to strain
+
+`examples/bcdi_pipeline.py` simulates a 16-voxel crystal (5 nm voxels, Au 111) with a localized Gaussian lattice displacement, computes its diffraction intensity, reconstructs it with [QoraPhase](https://github.com/NaNIsaac/QoraPhase) (4 random starts), aligns it to the amplitude of the true object, removes the phase ramp with `qoraphase.remove_ramp` and recovers the strain with `qorageom.strain` on the support eroded by one voxel. The crystal is simulated directly in lab axes, so no resampling is needed; the QoraPhase dependency lives in the `examples` group.
+
+```bash
+uv run --group examples python examples/bcdi_pipeline.py
+```
+
+```
+reconstruction: 2 s, Fourier error 1.8e-07
+true strain:  rms 1.64e-03, range [-4.14e-03, 4.76e-03]
+estimator floor on the true phase: rms 6.31e-05
+strain error: rms 3.80e-04, max 5.96e-04
+```
+
+The "floor" line is the same estimator applied to the true phase, so it is the part of the error that comes from the 5 nm voxels and finite differences. The data are noiseless, and the global phase, translation and twin branch are fixed from the true amplitude.
+
 ## Tests
 
 ```bash
