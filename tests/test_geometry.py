@@ -6,9 +6,11 @@ from qorageom import (
     basis_diagnostics,
     detector_pose,
     direct_basis,
+    lab_voxel_size,
     pixel_to_q_lab,
     q_to_tth,
     reciprocal_basis,
+    resample_to_lab,
     rotate,
     rotation_matrix,
     shear_correction,
@@ -199,3 +201,56 @@ def test_basis_diagnostics_orthogonal_and_sheared():
     d = basis_diagnostics(sheared)
     assert d["angles_deg"][1] == pytest.approx(45.0)
     assert d["cond"] > 1.0
+
+
+def test_lab_voxel_size_takes_smallest_edge():
+    lam, D, pix = 1.2e-10, 1.0, 5.5e-5
+    edge_xy = lam * D / pix / 64
+    # rocking edge lam / (step N3) is 1.2x the detector edge, inside the 0.7 floor
+    step = lam / (1.2 * edge_xy * 32)
+    assert lab_voxel_size(lam, D, pix, (64, 64, 32), step) == pytest.approx(edge_xy)
+
+
+def test_lab_voxel_size_fov_floor():
+    lam, D, pix = 1.2e-10, 1.0, 5.5e-5
+    edge_xy = lam * D / pix / 64
+    step = lam / (10 * edge_xy * 32)  # rocking edge 10x larger
+    assert lab_voxel_size(lam, D, pix, (64, 64, 32), step) == pytest.approx(0.7 * 10 * edge_xy)
+    assert lab_voxel_size(lam, D, pix, (64, 64, 32), step, fov_min=0) == pytest.approx(edge_xy)
+
+
+def test_resample_to_lab_identity_basis_is_a_no_op():
+    rng = np.random.default_rng(2)
+    vol = rng.normal(size=(6, 7, 5))
+    voxel = 2e-9
+    B = np.diag(1 / (np.array(vol.shape) * voxel))
+    np.testing.assert_allclose(resample_to_lab(vol, B, voxel), vol, atol=1e-12)
+
+
+def test_resample_to_lab_unshears_a_smooth_object():
+    shape, voxel = (33, 33, 33), 1.0
+    shear = np.array([[1.0, 0.3, 0.0], [0.0, 1.0, 0.2], [0.1, 0.0, 1.0]])  # detector voxel vectors
+    A = shear * 1.0
+    B = np.linalg.inv(A * np.array(shape)).T  # so that direct_basis(B, shape) == A
+    np.testing.assert_allclose(direct_basis(B, shape), A, atol=1e-12)
+
+    center = (np.array(shape) - 1) / 2
+
+    def gauss(r):
+        return np.exp(-np.sum((r - np.array([[1.0], [-2.0], [0.5]])) ** 2, axis=0) / (2 * 4.0**2))
+
+    idx = np.indices(shape).reshape(3, -1) - center[:, None]
+    det_volume = gauss(A @ idx).reshape(shape)
+    lab = resample_to_lab(det_volume, B, voxel, order=3)
+    expected = gauss(idx * voxel).reshape(shape)
+    inner = (slice(8, -8),) * 3  # away from the zero-filled corners
+    np.testing.assert_allclose(lab[inner], expected[inner], atol=5e-3)
+
+
+def test_resample_to_lab_keeps_complex_phase():
+    shape, voxel = (9, 9, 9), 1.0
+    B = np.diag(1 / (np.array(shape) * voxel))
+    vol = np.exp(1j * np.linspace(0, 1, 9**3)).reshape(shape)
+    out = resample_to_lab(vol, B, voxel)
+    assert np.iscomplexobj(out)
+    np.testing.assert_allclose(out, vol, atol=1e-12)

@@ -61,6 +61,17 @@ d["cond"]         # 2.2049
 ```
 
 ```python
+from qorageom import lab_voxel_size, resample_to_lab
+
+lam, step = wavelength(10.0) * 1e-10, np.radians(0.01)
+voxel = lab_voxel_size(lam, 1.0, 5.5e-5, (64, 64, 32), step)   # 2.4656e-08 m
+B = reciprocal_basis(lam, step, 1.0, np.radians(-1.0), np.radians(37.0), 5.5e-5,
+                     theta=np.radians(-71.35), chi=np.radians(85.26), axis="phi")
+lab = resample_to_lab(np.random.default_rng(0).random((64, 64, 32)), B, voxel)
+lab.shape   # (64, 64, 32)
+```
+
+```python
 from qorageom.spec import Spec
 
 with Spec("path/to/specfile") as sp:
@@ -100,6 +111,8 @@ q_lab:       [-5.45985588e-01  2.03742181e+00 -2.24095052e-04]
 - `shear_correction(wavelength, delta_theta, D, gamma, delta, pixel_size)`: BCDI reciprocal basis `B_recip` (34-ID-C convention), `q = B_recip @ (i, j, k)` for detector pixel (i, j) and rocking step k.
 - `reciprocal_basis(wavelength, delta_rock, D, gamma, delta, pixel_size, theta, chi, axis="theta"|"phi", chi_offset)`: the same basis for a theta or phi rocking scan with the theta/chi/phi sample circles; the k column is the exact rotation step, so it matches `shear_correction` to first order in `delta_rock`.
 - `direct_basis(B, shape=None)`: real-space basis conjugate to a reciprocal basis (`B.T @ A == I`, no 2π); with `shape` the FFT voxel vectors. Raises `ValueError` for a singular basis.
+- `lab_voxel_size(wavelength, D, pixel_size, shape, delta_rock, fov_min=0.7)`: isotropic lab-frame voxel edge for a detector-frame volume, shrinking the field of view by at most `fov_min`.
+- `resample_to_lab(volume, B, voxel_size, order=1)`: resample a volume indexed (i, j, k) like the columns of `B` onto an orthogonal lab grid of the same shape (`scipy.ndimage.map_coordinates`).
 - `basis_diagnostics(B)`: column lengths, pairwise angles [deg] and condition number of a basis.
 
 `qorageom.spec`: `Spec`, `SpecScan`. Reads `#O/#P` motor positions, `#D` time, `#L` columns and data, and `#UXML` metadata (`scan.sdd`, `scan.rois`, `scan.beam_center`). `scan.scan_axis` (motor, start, stop, intervals, step of an `ascan`/`dscan`, else None), `scan.motor(name)`, `scan.detector` (`#UIMDET`) and `scan.roi` (`#UIMR5`). `scan.to_dataframe()` needs pandas.

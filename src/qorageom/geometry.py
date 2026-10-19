@@ -1,4 +1,5 @@
 import numpy as np
+from scipy.ndimage import map_coordinates
 from math import tau
 
 HC_KEV_ANGSTROM = 12.398419843320026  # CODATA 2018 hc [keV·Å]
@@ -149,6 +150,50 @@ def basis_diagnostics(B):
         "angles_deg": np.rad2deg(np.arccos(cos)),
         "cond": np.linalg.cond(B),
     }
+
+
+def lab_voxel_size(wavelength, D, pixel_size, shape, delta_rock, fov_min=0.7):
+    """Isotropic voxel edge for resampling a detector-frame volume to the lab frame.
+
+    ``shape`` is (N1, N2, N3) in the order of the basis columns. The detector-frame voxel
+    edges are lambda D / (pixel N1), lambda D / (pixel N2) and lambda / (delta_rock N3), with
+    ``delta_rock`` the angular rocking step in radians; the smallest one is used. When that
+    would shrink the field of view below ``fov_min`` of the original along any axis, the edge
+    grows to ``fov_min`` times the largest detector-frame edge. ``fov_min=0`` keeps the smallest.
+    """
+    n1, n2, n3 = shape
+    edges = np.array([
+        wavelength * D / pixel_size / n1,
+        wavelength * D / pixel_size / n2,
+        abs(wavelength / delta_rock / n3),
+    ])
+    return max(edges.min(), fov_min * edges.max())
+
+
+def resample_to_lab(volume, B, voxel_size, order=1):
+    """Resample a detector-frame volume onto an orthogonal lab-frame grid of the same shape.
+
+    ``volume`` is indexed (i, j, k) like the columns of the reciprocal basis ``B``; the lab
+    grid is centred like the volume, with edge ``voxel_size`` in the length unit of 1/q.
+    Voxels that map outside the volume are 0 and complex input is interpolated per component. The
+    legacy MATLAB also conjugates the result; that is left to the caller.
+    """
+    volume = np.asarray(volume)
+    shape = np.array(volume.shape)
+    center = (shape - 1) / 2
+    A = direct_basis(B, shape)
+    lab = (np.indices(volume.shape).reshape(3, -1) - center[:, None]) * voxel_size
+    idx = np.linalg.solve(A, lab) + center[:, None]
+
+    # round-off puts edge voxels a hair outside the volume, so test the bounds with a tolerance
+    inside = np.all((idx > -1e-9) & (idx < shape[:, None] - 1 + 1e-9), axis=0).reshape(volume.shape)
+
+    def sample(a):
+        return map_coordinates(a, idx, order=order, mode="nearest").reshape(volume.shape) * inside
+
+    if np.iscomplexobj(volume):
+        return sample(volume.real) + 1j * sample(volume.imag)
+    return sample(volume)
 
 
 def pixel_to_q_lab(
