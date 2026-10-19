@@ -60,6 +60,12 @@ def rotation_matrix(axis, angle_deg):
     return np.column_stack([rotate(e, axis, angle_deg) for e in np.eye(3)])
 
 
+def _detector_rotation(gamma, delta):
+    """Rotation of the 34-ID-C detector arm: delta about y after gamma about -x (radians)."""
+    s1, s2, _ = np.eye(3)
+    return rotation_matrix(s2, np.rad2deg(delta)) @ rotation_matrix(-s1, np.rad2deg(gamma))
+
+
 def shear_correction(wavelength, delta_theta, D, gamma, delta, pixel_size):
     """Detector-frame to reciprocal-space basis B_recip for a BCDI rocking scan (34-ID-C).
 
@@ -68,8 +74,8 @@ def shear_correction(wavelength, delta_theta, D, gamma, delta, pixel_size):
     length unit, angles are in radians, and q comes out in inverse length without 2π.
     gamma turns about -x because the 34-ID-C arm rotates clockwise.
     """
-    s1, s2, s3 = np.eye(3)
-    B_det = rotation_matrix(s2, np.rad2deg(delta)) @ rotation_matrix(-s1, np.rad2deg(gamma))
+    _, s2, s3 = np.eye(3)
+    B_det = _detector_rotation(gamma, delta)
 
     pref = pixel_size / (wavelength * D)
     qi = pref * B_det[:, 0]
@@ -98,8 +104,8 @@ def reciprocal_basis(
     if axis not in ("theta", "phi"):
         raise ValueError(f"axis must be 'theta' or 'phi', got {axis!r}")
 
-    s1, s2, s3 = np.eye(3)
-    B_det = rotation_matrix(s2, np.rad2deg(delta)) @ rotation_matrix(-s1, np.rad2deg(gamma))
+    _, s2, s3 = np.eye(3)
+    B_det = _detector_rotation(gamma, delta)
 
     pref = pixel_size / (wavelength * D)
     qi = pref * B_det[:, 0]
@@ -113,6 +119,29 @@ def reciprocal_basis(
         )
     qk = outer @ rotation_matrix(s2, -np.rad2deg(delta_rock)) @ outer.T @ q0 - q0
     return np.stack([qi, qj, qk], axis=1)
+
+
+def energy_to_kev(energy, delta_energy=0.0):
+    """(energy, delta_energy) in keV, taking values of 1000 or more to be eV."""
+    scale = 1e-3 if np.min(energy) >= 1000 else 1.0
+    return energy * scale, delta_energy * scale
+
+
+def energy_basis(energy, delta_energy, D, gamma, delta, pixel_size):
+    """Detector-frame to reciprocal-space basis for an energy scan at a fixed sample angle.
+
+    Same layout as ``shear_correction``, but ``D`` and ``pixel_size`` are in metres and q is in
+    1/m without 2π. ``energy`` and ``delta_energy`` share one unit, keV or eV (see
+    ``energy_to_kev``). The k column is q(E + dE) - q(E) = Q dE / E of the central pixel, while
+    the pixel columns are evaluated at ``energy``.
+    """
+    energy, delta_energy = energy_to_kev(energy, delta_energy)
+    lam = wavelength(energy) * 1e-10
+    s3 = np.array([0.0, 0.0, 1.0])
+    B_det = _detector_rotation(gamma, delta)
+    pref = pixel_size / (lam * D)
+    q0 = (B_det @ s3 - s3) / lam
+    return np.stack([pref * B_det[:, 0], pref * B_det[:, 1], q0 * delta_energy / energy], axis=1)
 
 
 def direct_basis(B, shape=None):

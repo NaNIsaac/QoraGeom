@@ -6,6 +6,8 @@ from qorageom import (
     basis_diagnostics,
     detector_pose,
     direct_basis,
+    energy_basis,
+    energy_to_kev,
     lab_voxel_size,
     pixel_to_q_lab,
     q_to_tth,
@@ -266,3 +268,31 @@ def test_resample_to_lab_keeps_the_origin_voxel_fixed(shape):
     out = resample_to_lab(vol, B, voxel_size=0.5)
     assert np.unravel_index(np.argmax(out), shape) == origin
     assert out[origin] == pytest.approx(1.0)
+
+
+def test_energy_to_kev_detects_unit():
+    assert energy_to_kev(9.0, 0.002) == (9.0, 0.002)
+    kev, dkev = energy_to_kev(9000.0, 2.0)
+    assert kev == pytest.approx(9.0)
+    assert dkev == pytest.approx(0.002)
+
+
+def test_energy_basis_k_matches_pixel_q_at_two_energies():
+    # pixel_to_q_lab builds q from the two wavevectors, independent of the basis algebra
+    delta_deg, energy, dE, D = 37.0, 9.0, 0.003, 0.5
+    beam = [0, 0, 1]
+    center, x_dir, y_dir = detector_pose(D, beam, [0, 1, 0], up_angle_deg=0, side_angle_deg=delta_deg)
+
+    def q_lab(e):  # 1/Å with 2π -> 1/m without
+        return pixel_to_q_lab(e, beam, center, x_dir, y_dir, 55e-6, 0, 0) / (2 * np.pi) * 1e10
+
+    B = energy_basis(energy, dE, D, 0.0, np.radians(delta_deg), 55e-6)
+    np.testing.assert_allclose(B[:, 2], q_lab(energy + dE) - q_lab(energy), rtol=1e-6)
+
+
+def test_energy_basis_ev_equals_kev_and_pixel_columns_match_shear_correction():
+    args = (0.5, np.radians(-1.0), np.radians(37.0), 55e-6)
+    kev = energy_basis(9.0, 0.003, *args)
+    np.testing.assert_allclose(energy_basis(9000.0, 3.0, *args), kev)
+    ref = shear_correction(wavelength(9.0) * 1e-10, 1e-4, *args)
+    np.testing.assert_allclose(kev[:, :2], ref[:, :2])

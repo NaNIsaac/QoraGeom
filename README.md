@@ -49,6 +49,16 @@ B = reciprocal_basis(wavelength(10.0) * 1e-10, np.radians(0.01), 1.0, np.radians
 ```
 
 ```python
+from qorageom import energy_basis
+
+# energy scan 9000 -> 9003 eV per step; the unit (keV or eV) is detected from the value
+B = energy_basis(9000.0, 3.0, 0.5, np.radians(-1.0), np.radians(37.0), 55e-6)   # D, pixel in m; q in 1/m
+# [[ 637701.5498    8386.6245 1455967.8687]
+#  [      0.      798367.2361  -42228.9453]
+#  [-480542.5856   11129.4266 -487528.5606]]
+```
+
+```python
 from qorageom import basis_diagnostics, direct_basis
 
 A = direct_basis(B, shape=(64, 64, 32))   # voxel vectors [m] of the FFT grid, B from above
@@ -118,6 +128,7 @@ q_lab:       [-5.45985588e-01  2.03742181e+00 -2.24095052e-04]
 - `rotate`, `rotation_matrix`: Rodrigues rotation (vector and matrix form),
 - `shear_correction(wavelength, delta_theta, D, gamma, delta, pixel_size)`: BCDI reciprocal basis `B_recip` (34-ID-C convention), `q = B_recip @ (i, j, k)` for detector pixel (i, j) and rocking step k.
 - `reciprocal_basis(wavelength, delta_rock, D, gamma, delta, pixel_size, theta, chi, axis="theta"|"phi", chi_offset)`: the same basis for a theta or phi rocking scan with the theta/chi/phi sample circles; the k column is the exact rotation step, so it matches `shear_correction` to first order in `delta_rock`.
+- `energy_basis(energy, delta_energy, D, gamma, delta, pixel_size)`, `energy_to_kev`: the basis for an energy scan at a fixed sample angle (lengths in m, q in 1/m); energies of 1000 or more are taken as eV.
 - `direct_basis(B, shape=None)`: real-space basis conjugate to a reciprocal basis (`B.T @ A == I`, no 2π); with `shape` the FFT voxel vectors. Raises `ValueError` for a singular basis.
 - `lab_voxel_size(wavelength, D, pixel_size, shape, delta_rock, fov_min=0.7)`: isotropic lab-frame voxel edge for a detector-frame volume, shrinking the field of view by at most `fov_min`.
 - `resample_to_lab(volume, B, voxel_size, order=1)`: resample a volume indexed (i, j, k) like the columns of `B` onto an orthogonal lab grid of the same shape (`scipy.ndimage.map_coordinates`).
