@@ -149,9 +149,27 @@ q_lab:       [-5.45985588e-01  2.03742181e+00 -2.24095052e-04]
 - `displacement_gradient(phase, voxel_size, axis)`: gradient of a wrapped phase [rad per length], robust against 2π jumps (smallest of three phase offsets per voxel, as in the legacy MATLAB strain script),
 - `strain(phase, q_vector, voxel_size, support=None)`: strain along the scattering vector `q_vector` (rad per length, with the 2π), `Ĝ . grad(phase) / |G|`; nan outside `support`.
 
-`qorageom.spec`: `Spec`, `SpecScan`. Reads `#O/#P` motor positions, `#D` time, `#L` columns and data, and `#UXML` metadata (`scan.sdd`, `scan.rois`, `scan.beam_center`). `scan.scan_axis` (motor, start, stop, intervals, step of an `ascan`/`dscan`, else None), `scan.motor(name)`, `scan.detector` (`#UIMDET`) and `scan.roi` (`#UIMR5`). `scan.to_dataframe()` needs pandas.
+`qorageom.detector`: `Detector` (pixel size [m], axis orientation, frame shape), `DETECTORS` and `get_detector(name)` for `34idcTIM1`, `34idcTIM2`, `ASI`, `mpxgaas` and `e4m`.
+
+`qorageom.scan_geometry`: `geometry_from_spec(scan, diffractometer="34idc", detector=None, shape=None, binning=(1, 1, 1), **overrides)` and the `ScanGeometry` it returns.
+
+`qorageom.spec`: `Spec`, `SpecScan`. Reads `#O/#P` motor positions, `#D` time, `#L` columns and data, and `#UXML` metadata (`scan.sdd`, `scan.rois`, `scan.beam_center`). `scan.scan_axis` (motor, start, stop, intervals, step of an `ascan`/`dscan`, else None), `scan.motor(name)`, `scan.detector` (`#UIMDET`) and `scan.roi` (`#UIMR5`), `scan.energy_kev` and `scan.detector_distance_m` (`camdist` or `sdd`, mm to m). `scan.to_dataframe()` needs pandas.
 
 `qorageom.io`: `load_mat` (.mat `data` (y, x, frame) → (frame, y, x)), `load_tif_stack`, `load_h5`, `dump_h5` (print every group/dataset with shape, dtype and attributes).
+
+## From a SPEC scan to a lab-frame volume
+
+`geometry_from_spec` reads the circle angles, energy, detector name and distance, and the rocking motor from a scan header, picks `reciprocal_basis` (theta or phi scans) or `energy_basis` (energy scans), and returns a `ScanGeometry` with the bases, the lab voxel size and the basis diagnostics. Keyword overrides (`delta=`, `energy=`, `distance_m=`, `detector=`, ...) win over the file, and a missing value raises an error that names the keyword to pass. `examples/spec_to_lab.py` writes a one-scan SPEC file and resamples a volume:
+
+```bash
+uv run python examples/spec_to_lab.py
+```
+
+```
+phi 34idcTIM2 9.0 keV 0.5 m
+voxel 19.57 nm, cond 1.41
+(64, 64, 32)
+```
 
 ## From diffraction pattern to strain
 

@@ -184,16 +184,18 @@ def basis_diagnostics(B):
 def lab_voxel_size(wavelength, D, pixel_size, shape, delta_rock, fov_min=0.7):
     """Isotropic voxel edge for resampling a detector-frame volume to the lab frame.
 
-    ``shape`` is (N1, N2, N3) in the order of the basis columns. The detector-frame voxel
+    ``shape`` is (N1, N2, N3) in the order of the basis columns and ``pixel_size`` one value or
+    one per detector axis. The detector-frame voxel
     edges are lambda D / (pixel N1), lambda D / (pixel N2) and lambda / (delta_rock N3), with
     ``delta_rock`` the angular rocking step in radians; the smallest one is used. When that
     would shrink the field of view below ``fov_min`` of the original along any axis, the edge
     grows to ``fov_min`` times the largest detector-frame edge. ``fov_min=0`` keeps the smallest.
     """
     n1, n2, n3 = shape
+    p1, p2 = np.broadcast_to(pixel_size, 2)
     edges = np.array([
-        wavelength * D / pixel_size / n1,
-        wavelength * D / pixel_size / n2,
+        wavelength * D / p1 / n1,
+        wavelength * D / p2 / n2,
         abs(wavelength / delta_rock / n3),
     ])
     return max(edges.min(), fov_min * edges.max())

@@ -1,3 +1,4 @@
+from qorageom.detector import DETECTORS, Detector, get_detector
 from qorageom.diffractometer import DIFFRACTOMETERS, Diffractometer, get_diffractometer
 from qorageom.geometry import (
     HC_KEV_ANGSTROM,
@@ -19,18 +20,24 @@ from qorageom.geometry import (
     tth_to_q,
     wavelength,
 )
+from qorageom.scan_geometry import ScanGeometry, geometry_from_spec
 from qorageom.strain import displacement_gradient, strain
 
 __all__ = [
+    "DETECTORS",
     "DIFFRACTOMETERS",
     "HC_KEV_ANGSTROM",
+    "Detector",
     "Diffractometer",
+    "ScanGeometry",
     "basis_diagnostics",
     "detector_pose",
     "direct_basis",
     "displacement_gradient",
     "energy_basis",
     "energy_to_kev",
+    "geometry_from_spec",
+    "get_detector",
     "get_diffractometer",
     "lab_voxel_size",
     "pixel_to_q_lab",

@@ -7,6 +7,8 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, TextIO
 
+from qorageom.geometry import energy_to_kev
+
 logger = logging.getLogger(__name__)
 
 
@@ -39,7 +41,7 @@ def _xml_to_dict(element: ET.Element) -> Any:
     return result
 
 
-_MOTOR_ALIASES = {"del": "delta", "gam": "gamma"}
+_MOTOR_ALIASES = {"del": "delta", "gam": "gamma", "th": "theta", "en": "energy"}
 
 
 def _normalize_motor(name: str) -> str:
@@ -111,6 +113,22 @@ class SpecScan:
         except ValueError:
             return None
         return axis if axis.intervals > 0 else None
+
+    @property
+    def energy_kev(self) -> float | None:
+        """Photon energy in keV from the ``Energy`` motor (keV or eV in the file); None if absent."""
+        try:
+            return float(energy_to_kev(self.motor("energy"))[0])
+        except KeyError:
+            return None
+
+    @property
+    def detector_distance_m(self) -> float | None:
+        """Sample-detector distance in metres from the ``camdist`` motor, else ``sdd``; both mm."""
+        try:
+            return self.motor("camdist") / 1000
+        except KeyError:
+            return self.sdd / 1000 if self.sdd is not None else None
 
     @property
     def detector(self) -> str | None:
