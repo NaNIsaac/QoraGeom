@@ -6,6 +6,7 @@ from qorageom import (
     detector_pose,
     pixel_to_q_lab,
     q_to_tth,
+    reciprocal_basis,
     rotate,
     rotation_matrix,
     shear_correction,
@@ -92,3 +93,62 @@ def test_pixel_to_q_lab_array_matches_per_pixel():
     assert q.shape == (5, 7, 3)
     for i, j in np.ndindex(px.shape):
         np.testing.assert_array_equal(q[i, j], pixel_to_q_lab(*args, px[i, j], py[i, j]))
+
+
+def _sample_stack(theta, chi, phi, chi_offset):
+    """Sample-to-lab rotation, outer to inner theta (y+), chi (z-), phi (y+), angles in degrees."""
+    ry = lambda a: rotation_matrix([0, 1, 0], a)  # noqa: E731
+    return ry(theta) @ rotation_matrix([0, 0, -1], chi - chi_offset) @ ry(phi)
+
+
+ANGLES = dict(lam=1.2e-10, D=1.0, gamma=np.radians(-1.0), delta=np.radians(37.0), pix=5.5e-5)
+
+
+@pytest.mark.parametrize("axis, theta0, chi0, phi0", [
+    ("theta", -71.3, 85.3, 12.0),
+    ("theta", 20.0, 90.0, 0.0),
+    ("phi", -71.3, 85.3, 12.0),
+    ("phi", 15.0, 60.0, -30.0),
+])
+def test_reciprocal_basis_k_matches_explicit_sample_rotation(axis, theta0, chi0, phi0):
+    a = ANGLES
+    step = 0.01
+    B = reciprocal_basis(
+        a["lam"], np.radians(step), a["D"], a["gamma"], a["delta"], a["pix"],
+        theta=np.radians(theta0), chi=np.radians(chi0), axis=axis,
+    )
+
+    # fixed detector sees the lab q Q; the sample point it samples after the step is
+    # R(motor + step)^-1 Q, expressed back in the starting orientation
+    s1, s2, s3 = np.eye(3)
+    B_det = rotation_matrix(s2, np.rad2deg(a["delta"])) @ rotation_matrix(-s1, np.rad2deg(a["gamma"]))
+    Q = (B_det @ s3 - s3) / a["lam"]
+    start = (theta0, chi0, phi0)
+    moved = (theta0 + step, chi0, phi0) if axis == "theta" else (theta0, chi0, phi0 + step)
+    R0 = _sample_stack(*start, 90.0)
+    R1 = _sample_stack(*moved, 90.0)
+    np.testing.assert_allclose(B[:, 2], R0 @ R1.T @ Q - Q, rtol=1e-8, atol=1e-3)
+
+
+def test_reciprocal_basis_theta_agrees_with_shear_correction_to_first_order():
+    a, step = ANGLES, np.radians(0.005)
+    new = reciprocal_basis(a["lam"], step, a["D"], a["gamma"], a["delta"], a["pix"])
+    old = shear_correction(a["lam"], step, a["D"], a["gamma"], a["delta"], a["pix"])
+    np.testing.assert_allclose(new[:, :2], old[:, :2])
+    np.testing.assert_allclose(new[:, 2], old[:, 2], rtol=1e-3)
+    assert not np.allclose(new[:, 2], old[:, 2], rtol=1e-12)  # second-order term differs
+
+
+def test_reciprocal_basis_phi_with_chi_offset_removed_is_theta_rocking():
+    a = ANGLES
+    step = np.radians(0.01)
+    # chi - chi_offset = 0 and theta = 0 leave the phi axis along lab y
+    phi = reciprocal_basis(a["lam"], step, a["D"], a["gamma"], a["delta"], a["pix"],
+                           theta=0.0, chi=np.pi / 2, axis="phi")
+    theta = reciprocal_basis(a["lam"], step, a["D"], a["gamma"], a["delta"], a["pix"])
+    np.testing.assert_allclose(phi, theta, atol=1e-6)
+
+
+def test_reciprocal_basis_rejects_unknown_axis():
+    with pytest.raises(ValueError):
+        reciprocal_basis(1e-10, 1e-4, 1.0, 0.0, 0.5, 5e-5, axis="chi")

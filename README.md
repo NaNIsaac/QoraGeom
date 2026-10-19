@@ -38,6 +38,17 @@ B = shear_correction(wavelength(5.55) * 1e-10, np.radians(0.8 / 120), 0.511, 0.0
 ```
 
 ```python
+from qorageom import reciprocal_basis
+
+# phi rocking at theta = -71.35°, chi = 85.26° (chi motor offset 90°), 10 keV
+B = reciprocal_basis(wavelength(10.0) * 1e-10, np.radians(0.01), 1.0, np.radians(-1.0), np.radians(37.0), 5.5e-5,
+                     theta=np.radians(-71.35), chi=np.radians(85.26), axis="phi")
+# [[ 354278.6388    4659.2358  284512.2546]
+#  [      0.      443537.3534   73814.7868]
+#  [-266968.1031    6183.0148  843526.5203]]
+```
+
+```python
 from qorageom.spec import Spec
 
 with Spec("path/to/specfile") as sp:
@@ -67,6 +78,7 @@ q_lab:       [-5.45985588e-01  2.03742181e+00 -2.24095052e-04]
 - `detector_pose`, `pixel_to_q_lab`: detector center/pixel directions from arm angles, and the lab-frame q of a pixel,
 - `rotate`, `rotation_matrix`: Rodrigues rotation (vector and matrix form),
 - `shear_correction(wavelength, delta_theta, D, gamma, delta, pixel_size)`: BCDI reciprocal basis `B_recip` (34-ID-C convention), `q = B_recip @ (i, j, k)` for detector pixel (i, j) and rocking step k.
+- `reciprocal_basis(wavelength, delta_rock, D, gamma, delta, pixel_size, theta, chi, axis="theta"|"phi", chi_offset)`: the same basis for a theta or phi rocking scan with the theta/chi/phi sample circles; the k column is the exact rotation step, so it matches `shear_correction` to first order in `delta_rock`.
 
 `qorageom.spec`: `Spec`, `SpecScan`. Reads `#O/#P` motor positions, `#D` time, `#L` columns and data, and `#UXML` metadata (`scan.sdd`, `scan.rois`, `scan.beam_center`). `scan.to_dataframe()` needs pandas.
 

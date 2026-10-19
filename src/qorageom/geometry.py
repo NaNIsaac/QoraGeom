@@ -79,6 +79,41 @@ def shear_correction(wavelength, delta_theta, D, gamma, delta, pixel_size):
     return np.stack([qi, qj, qk], axis=1)
 
 
+def reciprocal_basis(
+    wavelength, delta_rock, D, gamma, delta, pixel_size, theta=0.0, chi=0.0, *,
+    axis="theta", chi_offset=np.pi / 2,
+):
+    """Detector-frame to reciprocal-space basis for a rocking scan about theta or phi (34-ID-C).
+
+    Same layout and units as ``shear_correction``: ``q = B @ (i, j, k)`` in inverse length
+    without 2π, lengths in one unit, angles in radians. The sample circles are
+    theta (y+), chi (z-) and phi (y+) from outer to inner, and the chi motor reads
+    ``chi_offset`` more than the physical angle, so chi - chi_offset is what turns the sample.
+
+    ``axis="theta"`` rocks about lab y. ``axis="phi"`` rocks about y carried through theta and chi.
+    The k column is the exact q step ``R(-delta_rock) Q - Q`` of the rocking rotation, whereas
+    ``shear_correction`` uses ``Q - R(delta_rock) Q``; the two agree to first order in the step.
+    """
+    if axis not in ("theta", "phi"):
+        raise ValueError(f"axis must be 'theta' or 'phi', got {axis!r}")
+
+    s1, s2, s3 = np.eye(3)
+    B_det = rotation_matrix(s2, np.rad2deg(delta)) @ rotation_matrix(-s1, np.rad2deg(gamma))
+
+    pref = pixel_size / (wavelength * D)
+    qi = pref * B_det[:, 0]
+    qj = pref * B_det[:, 1]
+
+    q0 = (B_det @ s3 - s3) / wavelength
+    outer = np.eye(3)
+    if axis == "phi":
+        outer = rotation_matrix(s2, np.rad2deg(theta)) @ rotation_matrix(
+            -s3, np.rad2deg(chi - chi_offset)
+        )
+    qk = outer @ rotation_matrix(s2, -np.rad2deg(delta_rock)) @ outer.T @ q0 - q0
+    return np.stack([qi, qj, qk], axis=1)
+
+
 def pixel_to_q_lab(
     energy_kev,
     incident_dir,
