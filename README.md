@@ -159,7 +159,7 @@ q_lab:       [-5.45985588e-01  2.03742181e+00 -2.24095052e-04]
 
 ## From a SPEC scan to a lab-frame volume
 
-`geometry_from_spec` reads the circle angles, energy, detector name and distance, and the rocking motor from a scan header, picks `reciprocal_basis` (theta or phi scans) or `energy_basis` (energy scans), and returns a `ScanGeometry` with the bases, the lab voxel size and the basis diagnostics. Keyword overrides (`delta=`, `energy=`, `distance_m=`, `detector=`, ...) win over the file, and a missing value raises an error that names the keyword to pass. `examples/spec_to_lab.py` writes a one-scan SPEC file and resamples a volume:
+`geometry_from_spec` reads the circle angles, energy, detector name and distance, and the rocking motor from a scan header, picks `reciprocal_basis` (theta or phi scans) or `energy_basis` (energy scans), and returns a `ScanGeometry` with the bases, the lab voxel size and the basis diagnostics. Keyword overrides (`delta=`, `energy=`, `distance_m=`, `detector=`, ...) win over the file, and a missing value raises an error that names the keyword to pass. The bases follow the 34-ID-C circles, so `diffractometer="34idc"` is the only layout it computes for now; the P10 and ID01 tables in `qorageom.diffractometer` are there for reading their angles. `examples/spec_to_lab.py` writes a one-scan SPEC file and resamples a volume:
 
 ```bash
 uv run python examples/spec_to_lab.py
