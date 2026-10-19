@@ -1,8 +1,8 @@
 from qorageom.geometry import (
-    basis_diagnostics,
-    direct_basis,
     HC_KEV_ANGSTROM,
+    basis_diagnostics,
     detector_pose,
+    direct_basis,
     pixel_to_q_lab,
     q_to_tth,
     reciprocal_basis,
@@ -16,10 +16,10 @@ from qorageom.geometry import (
 )
 
 __all__ = [
-    "basis_diagnostics",
-    "direct_basis",
     "HC_KEV_ANGSTROM",
+    "basis_diagnostics",
     "detector_pose",
+    "direct_basis",
     "pixel_to_q_lab",
     "q_to_tth",
     "reciprocal_basis",

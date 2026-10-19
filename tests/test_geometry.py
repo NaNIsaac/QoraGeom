@@ -2,10 +2,10 @@ import numpy as np
 import pytest
 
 from qorageom import (
-    basis_diagnostics,
-    direct_basis,
     HC_KEV_ANGSTROM,
+    basis_diagnostics,
     detector_pose,
+    direct_basis,
     pixel_to_q_lab,
     q_to_tth,
     reciprocal_basis,
@@ -99,11 +99,17 @@ def test_pixel_to_q_lab_array_matches_per_pixel():
 
 def _sample_stack(theta, chi, phi, chi_offset):
     """Sample-to-lab rotation, outer to inner theta (y+), chi (z-), phi (y+), angles in degrees."""
-    ry = lambda a: rotation_matrix([0, 1, 0], a)  # noqa: E731
+    ry = lambda a: rotation_matrix([0, 1, 0], a)
     return ry(theta) @ rotation_matrix([0, 0, -1], chi - chi_offset) @ ry(phi)
 
 
-ANGLES = dict(lam=1.2e-10, D=1.0, gamma=np.radians(-1.0), delta=np.radians(37.0), pix=5.5e-5)
+ANGLES = {
+    "lam": 1.2e-10,
+    "D": 1.0,
+    "gamma": np.radians(-1.0),
+    "delta": np.radians(37.0),
+    "pix": 5.5e-5,
+}
 
 
 @pytest.mark.parametrize("axis, theta0, chi0, phi0", [

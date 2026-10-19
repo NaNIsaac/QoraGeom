@@ -52,11 +52,11 @@ class ScanAxis:
     motor: str
     start: float
     stop: float
-    npts: int
+    intervals: int  # SPEC's 4th argument; the scan has intervals + 1 points
 
     @property
     def step(self) -> float:
-        return (self.stop - self.start) / self.npts
+        return (self.stop - self.start) / self.intervals
 
 
 @dataclass
@@ -110,7 +110,7 @@ class SpecScan:
             axis = ScanAxis(parts[1], float(parts[2]), float(parts[3]), int(parts[4]))
         except ValueError:
             return None
-        return axis if axis.npts > 0 else None
+        return axis if axis.intervals > 0 else None
 
     @property
     def detector(self) -> str | None:

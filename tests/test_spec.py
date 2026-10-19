@@ -141,7 +141,7 @@ def _scan(command: str, **kwargs) -> SpecScan:
 def test_scan_axis_from_fixture(spec_file: Path):
     axis = Spec(spec_file).get_scan(2).scan_axis
     assert axis is not None
-    assert (axis.motor, axis.start, axis.stop, axis.npts) == ("mot_b", -1.0, 1.0, 5)
+    assert (axis.motor, axis.start, axis.stop, axis.intervals) == ("mot_b", -1.0, 1.0, 5)
     assert axis.step == pytest.approx(0.4)
 
 
