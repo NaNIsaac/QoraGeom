@@ -234,7 +234,7 @@ def test_resample_to_lab_unshears_a_smooth_object():
     B = np.linalg.inv(A * np.array(shape)).T  # so that direct_basis(B, shape) == A
     np.testing.assert_allclose(direct_basis(B, shape), A, atol=1e-12)
 
-    center = (np.array(shape) - 1) / 2
+    center = np.array(shape) // 2
 
     def gauss(r):
         return np.exp(-np.sum((r - np.array([[1.0], [-2.0], [0.5]])) ** 2, axis=0) / (2 * 4.0**2))
@@ -254,3 +254,15 @@ def test_resample_to_lab_keeps_complex_phase():
     out = resample_to_lab(vol, B, voxel)
     assert np.iscomplexobj(out)
     np.testing.assert_allclose(out, vol, atol=1e-12)
+
+
+@pytest.mark.parametrize("shape", [(8, 8, 8), (8, 10, 6), (9, 8, 7)])
+def test_resample_to_lab_keeps_the_origin_voxel_fixed(shape):
+    rng = np.random.default_rng(4)
+    B = rng.normal(size=(3, 3)) + 3 * np.eye(3)
+    vol = np.zeros(shape)
+    origin = tuple(n // 2 for n in shape)
+    vol[origin] = 1.0
+    out = resample_to_lab(vol, B, voxel_size=0.5)
+    assert np.unravel_index(np.argmax(out), shape) == origin
+    assert out[origin] == pytest.approx(1.0)

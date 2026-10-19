@@ -174,13 +174,14 @@ def resample_to_lab(volume, B, voxel_size, order=1):
     """Resample a detector-frame volume onto an orthogonal lab-frame grid of the same shape.
 
     ``volume`` is indexed (i, j, k) like the columns of the reciprocal basis ``B``; the lab
-    grid is centred like the volume, with edge ``voxel_size`` in the length unit of 1/q.
+    grid has edge ``voxel_size`` in the length unit of 1/q. Both use the center-origin
+    convention of the phase retrieval output: index ``n // 2`` along each axis is the origin.
     Voxels that map outside the volume are 0 and complex input is interpolated per component. The
     legacy MATLAB also conjugates the result; that is left to the caller.
     """
     volume = np.asarray(volume)
     shape = np.array(volume.shape)
-    center = (shape - 1) / 2
+    center = shape // 2
     A = direct_basis(B, shape)
     lab = (np.indices(volume.shape).reshape(3, -1) - center[:, None]) * voxel_size
     idx = np.linalg.solve(A, lab) + center[:, None]
