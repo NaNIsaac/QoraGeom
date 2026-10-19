@@ -1,5 +1,5 @@
 """One call from a SPEC scan to the reciprocal and direct bases of its volume."""
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 
 import numpy as np
 
@@ -8,17 +8,14 @@ from qorageom.diffractometer import get_diffractometer
 from qorageom.geometry import (
     basis_diagnostics,
     direct_basis,
-    energy_basis,
     energy_to_kev,
     lab_voxel_size,
-    reciprocal_basis,
     resample_to_lab,
     wavelength,
 )
 from qorageom.spec import SpecScan, _normalize_motor
 
-_OVERRIDES = {"th", "chi", "phi", "delta", "gamma", "energy", "distance_m", "chi_offset",
-              "scanmot", "scanmot_del"}
+_COMMON_OVERRIDES = {"energy", "distance_m", "scanmot", "scanmot_del"}
 
 
 @dataclass(frozen=True, eq=False)
@@ -56,23 +53,23 @@ def geometry_from_spec(
 ) -> ScanGeometry:
     """Geometry of a rocking scan from the values in its SPEC header.
 
-    Keyword overrides win over the file, as in cohere: the circle angles in degrees by
-    mnemonic (``th``, ``chi``, ``phi``, ``delta``, ``gamma``), ``energy`` (keV or eV),
-    ``distance_m``, ``chi_offset`` (degrees, default 90 for the 34-ID-C chi motor), and
-    ``scanmot`` with ``scanmot_del`` (step per frame in the motor's unit) when the scan command
-    is not an ``ascan``/``dscan``. ``detector`` defaults to ``#UIMDET``. ``shape`` is the
-    (N1, N2, N3) of the volume, ``binning`` the detector binning of the data and the number of
-    frames averaged per rocking step.
+    Keyword overrides win over the file, as in cohere: the circle readings in degrees by the
+    motor mnemonics of the diffractometer (``th``, ``chi``, ``phi``, ``delta``, ``gamma`` for
+    34-ID-C), their offsets as ``<mnemonic>_offset`` (``chi_offset`` defaults to 90 there),
+    ``energy`` (keV or eV), ``distance_m``, and ``scanmot`` with ``scanmot_del`` (step per frame
+    in the motor's unit) when the scan command is not an ``ascan``/``dscan``. ``detector``
+    defaults to ``#UIMDET``. ``shape`` is the (N1, N2, N3) of the volume, ``binning`` the
+    detector binning of the data and the number of frames averaged per rocking step.
 
-    Theta, phi and energy rocking are supported; only the ``34idc`` diffractometer so far. The
-    columns follow the detector orientation of the registry, so a ``'y-'`` axis flips its column.
+    The scan rocks one sample circle of the diffractometer, or the energy; the basis is
+    ``Diffractometer.rocking_basis``, with the detector orientation of the registry.
     """
-    unknown = set(overrides) - _OVERRIDES
-    if unknown:
-        raise TypeError(f"unknown override(s) {sorted(unknown)}, known: {sorted(_OVERRIDES)}")
     diff = get_diffractometer(diffractometer)
-    if diff.name != "34idc":
-        raise NotImplementedError(f"geometry_from_spec supports '34idc' only, not {diff.name!r}")
+    motors = diff.sample_motors + diff.detector_motors
+    known = _COMMON_OVERRIDES | set(motors) | {f"{m}_offset" for m in diff.sample_motors}
+    unknown = set(overrides) - known
+    if unknown:
+        raise TypeError(f"unknown override(s) {sorted(unknown)}, known: {sorted(known)}")
 
     det_name = detector or scan.detector
     if det_name is None:
@@ -80,19 +77,23 @@ def geometry_from_spec(
     det = get_detector(det_name)
     if shape is None:
         raise ValueError("pass shape=(N1, N2, N3), the shape of the volume to describe")
-    orientation = tuple(o[0] for o in det.orientation)
-    if orientation != ("x", "y"):
-        raise NotImplementedError(f"detector orientation {det.orientation} is not supported")
 
-    angles = {}
-    for mne in ("th", "chi", "phi", "delta", "gamma"):
+    readings = {}
+    for mne in motors:
         if mne in overrides:
-            angles[mne] = overrides[mne]
+            readings[mne] = overrides[mne]
             continue
         try:
-            angles[mne] = scan.motor(mne)
+            readings[mne] = scan.motor(mne)
         except KeyError:
             raise _missing(scan, f"motor {mne!r}", mne) from None
+    offsets = tuple(
+        overrides.get(f"{mne}_offset", default)
+        for mne, default in zip(
+            diff.sample_motors, diff.sample_offsets_deg or (0.0,) * len(diff.sample_motors),
+            strict=True,
+        )
+    )
 
     energy_raw = overrides.get("energy", scan.motor("energy") if _has(scan, "energy") else None)
     if energy_raw is None:
@@ -102,43 +103,37 @@ def geometry_from_spec(
         raise _missing(scan, "detector distance (camdist or sdd)", "distance_m")
 
     axis = scan.scan_axis
-    if "scanmot" in overrides or "scanmot_del" in overrides:
-        motor = overrides.get("scanmot", axis.motor if axis else None)
-        step = overrides.get("scanmot_del", axis.step if axis else None)
-    else:
-        motor, step = (axis.motor, axis.step) if axis else (None, None)
+    motor = overrides.get("scanmot", axis.motor if axis else None)
+    step = overrides.get("scanmot_del", axis.step if axis else None)
     if motor is None or step is None:
-        raise _missing(scan, "scan axis (the command is not an ascan or dscan)", "scanmot and scanmot_del")
-    rocking = _normalize_motor(motor)
+        raise _missing(
+            scan, "scan axis (the command is not an ascan or dscan)", "scanmot and scanmot_del"
+        )
     step = step * binning[2]
+
+    wanted = _normalize_motor(motor)
+    rock = next((m for m in diff.sample_motors if _normalize_motor(m) == wanted), None)
+    if rock is None and wanted != "energy":
+        raise ValueError(
+            f"cannot rock about {motor!r}; supported: {list(diff.sample_motors)} and energy"
+        )
 
     pixel = (det.pixel_size[0] * binning[0], det.pixel_size[1] * binning[1])
     energy_kev, step_kev = energy_to_kev(energy_raw, step)
     lam = wavelength(energy_kev) * 1e-10
-    gamma, delta = np.radians([angles["gamma"], angles["delta"]])
-    if rocking in ("theta", "phi"):
-        step_rad = np.radians(step)
-        B = reciprocal_basis(
-            lam, step_rad, distance, gamma, delta, pixel[0],
-            theta=np.radians(angles["th"]), chi=np.radians(angles["chi"]), axis=rocking,
-            chi_offset=np.radians(overrides.get("chi_offset", 90.0)),
-        )
-        rock_step = step_rad
-    elif rocking == "energy":
-        B = energy_basis(energy_kev, step_kev, distance, gamma, delta, pixel[0])
-        # the edge lam / (rock_step N3) of lab_voxel_size is 1 / (|q_k| N3) here
-        rock_step = lam * np.linalg.norm(B[:, 2])
-    else:
-        raise ValueError(f"cannot rock about {motor!r}; supported: theta, phi, energy")
-    B[:, 1] *= pixel[1] / pixel[0]
-    B[:, 0] *= 1 if det.orientation[0].endswith("+") else -1
-    B[:, 1] *= 1 if det.orientation[1].endswith("+") else -1
+    B = replace(diff, sample_offsets_deg=offsets).rocking_basis(
+        lam, distance, pixel,
+        [readings[m] for m in diff.sample_motors], [readings[m] for m in diff.detector_motors],
+        rock or "energy", step_kev / energy_kev if rock is None else step, det.orientation,
+    )
+    # for energy the angular step of lab_voxel_size is the one whose edge is 1 / (|q_k| N3)
+    rock_step = np.radians(step) if rock else lam * np.linalg.norm(B[:, 2])
 
     shape = tuple(int(n) for n in shape)
     return ScanGeometry(
         diffractometer=diff.name,
         detector=det.name,
-        axis=rocking,
+        axis=rock or "energy",
         shape=shape,
         wavelength_m=lam,
         energy_kev=energy_kev,

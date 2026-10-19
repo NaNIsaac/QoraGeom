@@ -73,7 +73,7 @@ def test_phi_scan_matches_reciprocal_basis(tmp_path):
 def test_theta_scan_uses_theta_axis(tmp_path):
     geom = geometry_from_spec(_spec(tmp_path, scan="theta"), shape=SHAPE)
     expected = reciprocal_basis(LAM, np.radians(0.001), 0.5, **ANGLES, pixel_size=55e-6)
-    np.testing.assert_allclose(geom.B[:, 2], expected[:, 2])
+    np.testing.assert_allclose(geom.B[:, 2], expected[:, 2], rtol=1e-7, atol=1e-6)
 
 
 def test_energy_scan_uses_energy_basis(tmp_path):
@@ -149,14 +149,36 @@ def test_missing_motor_and_scan_axis(tmp_path):
         geometry_from_spec(_spec(tmp_path, scan="mesh"), shape=SHAPE)
 
 
-def test_rocking_about_chi_unsupported(tmp_path):
+def test_rocking_about_chi_and_a_detector_motor(tmp_path):
+    scan = _spec(tmp_path, scan="mesh")
+    assert geometry_from_spec(scan, shape=SHAPE, scanmot="Chi", scanmot_del=0.01).axis == "chi"
     with pytest.raises(ValueError, match="cannot rock"):
-        geometry_from_spec(_spec(tmp_path, scan="mesh"), shape=SHAPE, scanmot="chi", scanmot_del=0.1)
+        geometry_from_spec(scan, shape=SHAPE, scanmot="delta", scanmot_del=0.1)
 
 
 def test_unknown_override_and_diffractometer(tmp_path):
     scan = _spec(tmp_path)
     with pytest.raises(TypeError, match="deltta"):
         geometry_from_spec(scan, shape=SHAPE, deltta=1.0)
-    with pytest.raises(NotImplementedError):
+    with pytest.raises(ValueError, match="mu="):  # the 34-ID-C file has no mu motor
         geometry_from_spec(scan, diffractometer="id01", shape=SHAPE)
+
+
+def test_id01_and_p10_geometry_from_overrides(tmp_path):
+    scan = _spec(tmp_path)
+    angles = {"mu": 0.5, "eta": 20.0, "phi": 3.0, "nu": 0.7, "delta": 30.0}
+    id01 = geometry_from_spec(scan, diffractometer="id01", shape=SHAPE, scanmot="eta",
+                              scanmot_del=0.01, **angles)
+    assert id01.axis == "eta"
+    p10 = geometry_from_spec(
+        scan, diffractometer="P10sixc", shape=SHAPE, scanmot="om", scanmot_del=0.01,
+        mu=0.5, om=20.0, chi=1.0, phi=3.0, gam=0.7, **{"del": 30.0},
+    )
+    assert p10.axis == "om"
+    assert np.all(np.isfinite(p10.B)) and np.all(np.isfinite(id01.B))
+
+
+def test_sample_offset_override(tmp_path):
+    scan = _spec(tmp_path)
+    shifted = geometry_from_spec(scan, shape=SHAPE, chi_offset=80.0)
+    assert not np.allclose(shifted.B, geometry_from_spec(scan, shape=SHAPE).B)

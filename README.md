@@ -142,7 +142,7 @@ q_lab:       [-5.45985588e-01  2.03742181e+00 -2.24095052e-04]
 - `resample_to_lab(volume, B, voxel_size, order=1)`: resample a volume indexed (i, j, k) like the columns of `B` onto an orthogonal lab grid of the same shape (`scipy.ndimage.map_coordinates`).
 - `basis_diagnostics(B)`: column lengths, pairwise angles [deg] and condition number of a basis.
 
-`qorageom.diffractometer`: `Diffractometer` (circle axes in xrayutilities notation such as `'z-'`, outer to inner, with SPEC motor names; `sample_rotation`, `detector_rotation` take one angle [deg] per circle), `DIFFRACTOMETERS` and `get_diffractometer(name)` for `34idc`, `P10sixc` and `id01`.
+`qorageom.diffractometer`: `Diffractometer` (circle axes in xrayutilities notation such as `'z-'`, outer to inner, with SPEC motor names; `sample_rotation`, `detector_rotation` take one angle [deg] per circle; `rocking_basis` gives the reciprocal basis of a scan rocking one sample circle or the energy), `DIFFRACTOMETERS` and `get_diffractometer(name)` for `34idc`, `P10sixc` and `id01`.
 
 `qorageom.strain`:
 
@@ -159,7 +159,7 @@ q_lab:       [-5.45985588e-01  2.03742181e+00 -2.24095052e-04]
 
 ## From a SPEC scan to a lab-frame volume
 
-`geometry_from_spec` reads the circle angles, energy, detector name and distance, and the rocking motor from a scan header, picks `reciprocal_basis` (theta or phi scans) or `energy_basis` (energy scans), and returns a `ScanGeometry` with the bases, the lab voxel size and the basis diagnostics. Keyword overrides (`delta=`, `energy=`, `distance_m=`, `detector=`, ...) win over the file, and a missing value raises an error that names the keyword to pass. The bases follow the 34-ID-C circles, so `diffractometer="34idc"` is the only layout it computes for now; the P10 and ID01 tables in `qorageom.diffractometer` are there for reading their angles. `examples/spec_to_lab.py` writes a one-scan SPEC file and resamples a volume:
+`geometry_from_spec` reads the circle angles, energy, detector name and distance, and the rocking motor from a scan header, builds the basis from the diffractometer's axis strings (`Diffractometer.rocking_basis`, the same construction as xrayutilities' `QConversion`), and returns a `ScanGeometry` with the bases, the lab voxel size and the basis diagnostics. It covers every layout in the registry (`34idc`, `P10sixc`, `id01`) for rocking about any one sample circle or the energy. Keyword overrides (`delta=`, `energy=`, `distance_m=`, `detector=`, `chi_offset=`, ...) win over the file, and a missing value raises an error that names the keyword to pass. `examples/spec_to_lab.py` writes a one-scan SPEC file and resamples a volume:
 
 ```bash
 uv run python examples/spec_to_lab.py
