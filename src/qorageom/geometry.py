@@ -114,6 +114,43 @@ def reciprocal_basis(
     return np.stack([qi, qj, qk], axis=1)
 
 
+def direct_basis(B, shape=None):
+    """Real-space basis conjugate to the reciprocal basis ``B`` (columns are q per step, no 2π).
+
+    Columns ``a_i`` satisfy ``a_i . q_j = delta_ij``, so ``B.T @ direct_basis(B) == I``. With
+    ``shape = (N1, N2, N3)`` each column is divided by its array length, giving the voxel
+    vectors of the FFT grid, in the length unit of 1/q. The legacy MATLAB basis carries a 2π
+    in both bases and an overall sign from a reversed triple product; neither is reproduced.
+    """
+    B = np.asarray(B, dtype=float)
+    b1, b2, b3 = B.T
+    volume = np.dot(b1, np.cross(b2, b3))
+    if abs(volume) <= np.finfo(float).eps * np.prod(np.linalg.norm(B, axis=0)):
+        raise ValueError("reciprocal basis is singular")
+    A = np.stack([np.cross(b2, b3), np.cross(b3, b1), np.cross(b1, b2)], axis=1) / volume
+    if shape is not None:
+        A = A / np.asarray(shape, dtype=float)
+    return A
+
+
+def basis_diagnostics(B):
+    """Column lengths, pairwise column angles [deg] and condition number of a 3x3 basis.
+
+    Angles are ordered (1-2, 1-3, 2-3). A condition number above about 10 means the
+    angles of the scan leave the voxel grid badly sheared.
+    """
+    B = np.asarray(B, dtype=float)
+    lengths = np.linalg.norm(B, axis=0)
+    unit = B / lengths
+    pairs = [(0, 1), (0, 2), (1, 2)]
+    cos = np.clip([unit[:, i] @ unit[:, j] for i, j in pairs], -1, 1)
+    return {
+        "lengths": lengths,
+        "angles_deg": np.rad2deg(np.arccos(cos)),
+        "cond": np.linalg.cond(B),
+    }
+
+
 def pixel_to_q_lab(
     energy_kev,
     incident_dir,

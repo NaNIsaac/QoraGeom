@@ -49,6 +49,18 @@ B = reciprocal_basis(wavelength(10.0) * 1e-10, np.radians(0.01), 1.0, np.radians
 ```
 
 ```python
+from qorageom import basis_diagnostics, direct_basis
+
+A = direct_basis(B, shape=(64, 64, 32))   # voxel vectors [m] of the FFT grid, B from above
+# [[ 3.5177e-08 -1.8551e-09  2.2293e-08]
+#  [-2.0437e-10  3.5282e-08 -6.4659e-10]
+#  [-1.1847e-08 -2.4617e-09  2.9584e-08]]
+d = basis_diagnostics(B)
+d["angles_deg"]   # [ 90.     108.2963  84.311 ]
+d["cond"]         # 2.2049
+```
+
+```python
 from qorageom.spec import Spec
 
 with Spec("path/to/specfile") as sp:
@@ -79,6 +91,8 @@ q_lab:       [-5.45985588e-01  2.03742181e+00 -2.24095052e-04]
 - `rotate`, `rotation_matrix`: Rodrigues rotation (vector and matrix form),
 - `shear_correction(wavelength, delta_theta, D, gamma, delta, pixel_size)`: BCDI reciprocal basis `B_recip` (34-ID-C convention), `q = B_recip @ (i, j, k)` for detector pixel (i, j) and rocking step k.
 - `reciprocal_basis(wavelength, delta_rock, D, gamma, delta, pixel_size, theta, chi, axis="theta"|"phi", chi_offset)`: the same basis for a theta or phi rocking scan with the theta/chi/phi sample circles; the k column is the exact rotation step, so it matches `shear_correction` to first order in `delta_rock`.
+- `direct_basis(B, shape=None)`: real-space basis conjugate to a reciprocal basis (`B.T @ A == I`, no 2π); with `shape` the FFT voxel vectors. Raises `ValueError` for a singular basis.
+- `basis_diagnostics(B)`: column lengths, pairwise angles [deg] and condition number of a basis.
 
 `qorageom.spec`: `Spec`, `SpecScan`. Reads `#O/#P` motor positions, `#D` time, `#L` columns and data, and `#UXML` metadata (`scan.sdd`, `scan.rois`, `scan.beam_center`). `scan.to_dataframe()` needs pandas.
 

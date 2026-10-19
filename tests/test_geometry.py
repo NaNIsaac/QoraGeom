@@ -2,6 +2,8 @@ import numpy as np
 import pytest
 
 from qorageom import (
+    basis_diagnostics,
+    direct_basis,
     HC_KEV_ANGSTROM,
     detector_pose,
     pixel_to_q_lab,
@@ -152,3 +154,42 @@ def test_reciprocal_basis_phi_with_chi_offset_removed_is_theta_rocking():
 def test_reciprocal_basis_rejects_unknown_axis():
     with pytest.raises(ValueError):
         reciprocal_basis(1e-10, 1e-4, 1.0, 0.0, 0.5, 5e-5, axis="chi")
+
+
+def test_direct_basis_is_dual_of_reciprocal_basis():
+    a = ANGLES
+    B = reciprocal_basis(a["lam"], np.radians(0.01), a["D"], a["gamma"], a["delta"], a["pix"])
+    A = direct_basis(B)
+    np.testing.assert_allclose(B.T @ A, np.eye(3), atol=1e-9)
+    np.testing.assert_allclose(A, np.linalg.inv(B).T, rtol=1e-9)
+
+
+def test_direct_basis_shape_gives_fft_voxel_vectors():
+    rng = np.random.default_rng(1)
+    B = rng.normal(size=(3, 3))
+    shape = (4, 6, 8)
+    A = direct_basis(B, shape)
+    np.testing.assert_allclose(A * shape, direct_basis(B))
+    # one voxel step along axis i, times the FFT length, is a full reciprocal period
+    for i in range(3):
+        np.testing.assert_allclose(B.T @ (A[:, i] * shape[i]), np.eye(3)[i], atol=1e-12)
+
+
+def test_direct_basis_rejects_singular_basis():
+    B = np.array([[1.0, 2.0, 0.0], [0.0, 0.0, 0.0], [1.0, 2.0, 0.0]])
+    with pytest.raises(ValueError):
+        direct_basis(B)
+    with pytest.raises(ValueError):
+        direct_basis(np.array([[1.0, 2.0, 3.0], [2.0, 4.0, 6.0], [3.0, 6.0, 9.0]]))
+
+
+def test_basis_diagnostics_orthogonal_and_sheared():
+    d = basis_diagnostics(np.diag([1.0, 2.0, 4.0]))
+    np.testing.assert_allclose(d["lengths"], [1, 2, 4])
+    np.testing.assert_allclose(d["angles_deg"], [90, 90, 90])
+    assert d["cond"] == pytest.approx(4.0)
+
+    sheared = np.array([[1.0, 0, 1.0], [0, 1.0, 0], [0, 0, 1.0]])  # third column 45 deg from first
+    d = basis_diagnostics(sheared)
+    assert d["angles_deg"][1] == pytest.approx(45.0)
+    assert d["cond"] > 1.0
