@@ -1,3 +1,4 @@
+from qorageom.diffractometer import DIFFRACTOMETERS, Diffractometer, get_diffractometer
 from qorageom.geometry import (
     HC_KEV_ANGSTROM,
     basis_diagnostics,
@@ -18,10 +19,13 @@ from qorageom.geometry import (
 )
 
 __all__ = [
+    "DIFFRACTOMETERS",
     "HC_KEV_ANGSTROM",
+    "Diffractometer",
     "basis_diagnostics",
     "detector_pose",
     "direct_basis",
+    "get_diffractometer",
     "lab_voxel_size",
     "pixel_to_q_lab",
     "q_to_tth",

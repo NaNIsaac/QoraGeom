@@ -72,6 +72,14 @@ lab.shape   # (64, 64, 32)
 ```
 
 ```python
+from qorageom import get_diffractometer
+
+diff = get_diffractometer("34idc")
+diff.sample_axes, diff.detector_motors   # (('y+', 'z-', 'y+'), ('delta', 'gamma'))
+diff.detector_rotation([37.0, -1.0]) @ [0, 0, 1]   # [ 0.6017 -0.0175  0.7985]
+```
+
+```python
 from qorageom.spec import Spec
 
 with Spec("path/to/specfile") as sp:
@@ -114,6 +122,8 @@ q_lab:       [-5.45985588e-01  2.03742181e+00 -2.24095052e-04]
 - `lab_voxel_size(wavelength, D, pixel_size, shape, delta_rock, fov_min=0.7)`: isotropic lab-frame voxel edge for a detector-frame volume, shrinking the field of view by at most `fov_min`.
 - `resample_to_lab(volume, B, voxel_size, order=1)`: resample a volume indexed (i, j, k) like the columns of `B` onto an orthogonal lab grid of the same shape (`scipy.ndimage.map_coordinates`).
 - `basis_diagnostics(B)`: column lengths, pairwise angles [deg] and condition number of a basis.
+
+`qorageom.diffractometer`: `Diffractometer` (circle axes in xrayutilities notation such as `'z-'`, outer to inner, with SPEC motor names; `sample_rotation`, `detector_rotation` take one angle [deg] per circle), `DIFFRACTOMETERS` and `get_diffractometer(name)` for `34idc`, `P10sixc` and `id01`.
 
 `qorageom.spec`: `Spec`, `SpecScan`. Reads `#O/#P` motor positions, `#D` time, `#L` columns and data, and `#UXML` metadata (`scan.sdd`, `scan.rois`, `scan.beam_center`). `scan.scan_axis` (motor, start, stop, intervals, step of an `ascan`/`dscan`, else None), `scan.motor(name)`, `scan.detector` (`#UIMDET`) and `scan.roi` (`#UIMR5`). `scan.to_dataframe()` needs pandas.
 
