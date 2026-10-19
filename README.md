@@ -162,10 +162,10 @@ uv run --group examples python examples/bcdi_pipeline.py
 ```
 
 ```
-reconstruction: 2 s, Fourier error 1.8e-07
-true strain:  rms 1.64e-03, range [-4.14e-03, 4.76e-03]
-estimator floor on the true phase: rms 6.31e-05
-strain error: rms 3.80e-04, max 5.96e-04
+reconstruction: 13 s, Fourier error 1.8e-07
+true strain:  rms 1.77e-03, range [-4.14e-03, 4.76e-03]
+estimator floor on the true phase: rms 6.75e-05
+strain error: rms 4.29e-04, max 6.41e-04
 ```
 
 The "floor" line is the same estimator applied to the true phase, so it is the part of the error that comes from the 5 nm voxels and finite differences. The data are noiseless, and the global phase, translation and twin branch are fixed from the true amplitude.
