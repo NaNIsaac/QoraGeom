@@ -52,7 +52,7 @@ B = reciprocal_basis(wavelength(10.0) * 1e-10, np.radians(0.01), 1.0, np.radians
 from qorageom import energy_basis
 
 # energy scan 9000 -> 9003 eV per step; the unit (keV or eV) is detected from the value
-B = energy_basis(9000.0, 3.0, 0.5, np.radians(-1.0), np.radians(37.0), 55e-6)   # D, pixel in m; q in 1/m
+B_energy = energy_basis(9000.0, 3.0, 0.5, np.radians(-1.0), np.radians(37.0), 55e-6)   # D, pixel in m; q in 1/m
 # [[ 637701.5498    8386.6245 1455967.8687]
 #  [      0.      798367.2361  -42228.9453]
 #  [-480542.5856   11129.4266 -487528.5606]]
@@ -61,7 +61,7 @@ B = energy_basis(9000.0, 3.0, 0.5, np.radians(-1.0), np.radians(37.0), 55e-6)   
 ```python
 from qorageom import basis_diagnostics, direct_basis
 
-A = direct_basis(B, shape=(64, 64, 32))   # voxel vectors [m] of the FFT grid, B from above
+A = direct_basis(B, shape=(64, 64, 32))   # voxel vectors [m] of the FFT grid, B: the phi scan above
 # [[ 3.5177e-08 -1.8551e-09  2.2293e-08]
 #  [-2.0437e-10  3.5282e-08 -6.4659e-10]
 #  [-1.1847e-08 -2.4617e-09  2.9584e-08]]
@@ -103,7 +103,7 @@ from qorageom.spec import Spec
 with Spec("path/to/specfile") as sp:
     scan = sp.get_scan(1)
     scan.motors        # {'Theta': 10.0, 'Delta': 69.0, 'Gamma': 0.0}
-    scan.sdd           # 511.0, from #UXML <sample_detector_distance>
+    scan.sdd           # 511, from #UXML <sample_detector_distance>
     scan.to_dataframe()
 ```
 
@@ -111,7 +111,7 @@ with Spec("path/to/specfile") as sp:
 # scan 1: "ascan Phi 0.5 -0.5 20 2", #UIMDET Timepix:, #UIMR5 100 120 64 64
 scan.scan_axis             # ScanAxis(motor='Phi', start=0.5, stop=-0.5, intervals=20)
 scan.scan_axis.step        # -0.05
-scan.motor("del")          # 37.01, matches Delta ignoring case and the del/gam aliases
+scan.motor("del")          # 69.0, matches Delta ignoring case and the del/gam aliases
 scan.detector, scan.roi    # ('Timepix', [100, 120, 64, 64])
 ```
 
