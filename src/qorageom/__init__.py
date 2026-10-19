@@ -19,6 +19,7 @@ from qorageom.geometry import (
     tth_to_q,
     wavelength,
 )
+from qorageom.strain import displacement_gradient, strain
 
 __all__ = [
     "DIFFRACTOMETERS",
@@ -27,6 +28,7 @@ __all__ = [
     "basis_diagnostics",
     "detector_pose",
     "direct_basis",
+    "displacement_gradient",
     "energy_basis",
     "energy_to_kev",
     "get_diffractometer",
@@ -38,6 +40,7 @@ __all__ = [
     "rotate",
     "rotation_matrix",
     "shear_correction",
+    "strain",
     "tth_map",
     "tth_to_d",
     "tth_to_q",

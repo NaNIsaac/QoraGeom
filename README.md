@@ -90,6 +90,14 @@ diff.detector_rotation([37.0, -1.0]) @ [0, 0, 1]   # [ 0.6017 -0.0175  0.7985]
 ```
 
 ```python
+from qorageom import strain
+
+x = np.indices((12, 12, 12))[0] * 0.5               # nm
+wrapped = np.angle(np.exp(1j * 10.0 * 0.02 * x))    # G = 10 rad/nm along x, strain 0.02
+strain(wrapped, [10.0, 0, 0], voxel_size=0.5)[6, 6, 6]   # 0.020000000000000007
+```
+
+```python
 from qorageom.spec import Spec
 
 with Spec("path/to/specfile") as sp:
@@ -135,6 +143,11 @@ q_lab:       [-5.45985588e-01  2.03742181e+00 -2.24095052e-04]
 - `basis_diagnostics(B)`: column lengths, pairwise angles [deg] and condition number of a basis.
 
 `qorageom.diffractometer`: `Diffractometer` (circle axes in xrayutilities notation such as `'z-'`, outer to inner, with SPEC motor names; `sample_rotation`, `detector_rotation` take one angle [deg] per circle), `DIFFRACTOMETERS` and `get_diffractometer(name)` for `34idc`, `P10sixc` and `id01`.
+
+`qorageom.strain`:
+
+- `displacement_gradient(phase, voxel_size, axis)`: gradient of a wrapped phase [rad per length], robust against 2π jumps (smallest of three phase offsets per voxel, as in the legacy MATLAB strain script),
+- `strain(phase, q_vector, voxel_size, support=None)`: strain along the scattering vector `q_vector` (rad per length, with the 2π), `Ĝ . grad(phase) / |G|`; nan outside `support`.
 
 `qorageom.spec`: `Spec`, `SpecScan`. Reads `#O/#P` motor positions, `#D` time, `#L` columns and data, and `#UXML` metadata (`scan.sdd`, `scan.rois`, `scan.beam_center`). `scan.scan_axis` (motor, start, stop, intervals, step of an `ascan`/`dscan`, else None), `scan.motor(name)`, `scan.detector` (`#UIMDET`) and `scan.roi` (`#UIMR5`). `scan.to_dataframe()` needs pandas.
 
