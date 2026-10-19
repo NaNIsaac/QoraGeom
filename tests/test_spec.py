@@ -132,3 +132,66 @@ def test_xml_to_dict_handles_float_and_string():
 def test_xml_to_dict_repeated_tags_become_list():
     elem = ET.fromstring("<r><a>1</a><a>2</a><a>3</a></r>")
     assert _xml_to_dict(elem) == {"a": [1, 2, 3]}
+
+
+def _scan(command: str, **kwargs) -> SpecScan:
+    return SpecScan(scan_no=1, command=command, motor_names=[], **kwargs)
+
+
+def test_scan_axis_from_fixture(spec_file: Path):
+    axis = Spec(spec_file).get_scan(2).scan_axis
+    assert axis is not None
+    assert (axis.motor, axis.start, axis.stop, axis.npts) == ("mot_b", -1.0, 1.0, 5)
+    assert axis.step == pytest.approx(0.4)
+
+
+@pytest.mark.parametrize("command", [
+    "mesh a 0 1 2 b 0 1 2 1",
+    "ascan Phi 1 2",
+    "ascan Phi 1 two 10 1",
+    "ascan Phi 1 2 0 1",
+    "",
+])
+def test_scan_axis_none_for_unsupported_commands(command: str):
+    assert _scan(command).scan_axis is None
+
+
+def test_scan_axis_dscan_negative_step():
+    axis = _scan("dscan Phi 0.5 -0.5 20 2").scan_axis
+    assert axis.step == pytest.approx(-0.05)
+
+
+def test_motor_lookup_ignores_case_and_aliases():
+    scan = _scan("", _raw_p_values=[37.0, -1.0, 5.0])
+    scan.motor_names = ["Delta", "Gamma", "Th_eta"]
+    assert scan.motor("del") == 37.0
+    assert scan.motor("GAMMA") == -1.0
+    assert scan.motor("theta") == 5.0
+    with pytest.raises(KeyError):
+        scan.motor("chi")
+
+
+def test_detector_and_roi_from_header_lines(tmp_path: Path):
+    path = tmp_path / "det.spec"
+    path.write_text(
+        """#F det.spec
+#O0 Delta
+
+#S 1 ascan Phi 0 1 10 1
+#P0 3.0
+#UIMDET Timepix:
+#UIMR5 100 120 64 64
+#L a
+1
+""",
+        encoding="utf-8",
+    )
+    scan = Spec(path).get_scan(1)
+    assert scan.detector == "Timepix"
+    assert scan.roi == [100, 120, 64, 64]
+
+
+def test_detector_and_roi_none_when_absent(spec_file: Path):
+    scan = Spec(spec_file).get_scan(1)
+    assert scan.detector is None
+    assert scan.roi is None

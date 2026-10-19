@@ -70,6 +70,14 @@ with Spec("path/to/specfile") as sp:
     scan.to_dataframe()
 ```
 
+```python
+# scan 1: "ascan Phi 0.5 -0.5 20 2", #UIMDET Timepix:, #UIMR5 100 120 64 64
+scan.scan_axis             # ScanAxis(motor='Phi', start=0.5, stop=-0.5, npts=20)
+scan.scan_axis.step        # -0.05
+scan.motor("del")          # 37.01, matches Delta ignoring case and the del/gam aliases
+scan.detector, scan.roi    # ('Timepix', [100, 120, 64, 64])
+```
+
 `main.py` prints the detector pose and the q vector of pixel (1, 1) for an 8.04 keV beam, a 1 m detector distance and a 30° up angle:
 
 ```
@@ -94,7 +102,7 @@ q_lab:       [-5.45985588e-01  2.03742181e+00 -2.24095052e-04]
 - `direct_basis(B, shape=None)`: real-space basis conjugate to a reciprocal basis (`B.T @ A == I`, no 2π); with `shape` the FFT voxel vectors. Raises `ValueError` for a singular basis.
 - `basis_diagnostics(B)`: column lengths, pairwise angles [deg] and condition number of a basis.
 
-`qorageom.spec`: `Spec`, `SpecScan`. Reads `#O/#P` motor positions, `#D` time, `#L` columns and data, and `#UXML` metadata (`scan.sdd`, `scan.rois`, `scan.beam_center`). `scan.to_dataframe()` needs pandas.
+`qorageom.spec`: `Spec`, `SpecScan`. Reads `#O/#P` motor positions, `#D` time, `#L` columns and data, and `#UXML` metadata (`scan.sdd`, `scan.rois`, `scan.beam_center`). `scan.scan_axis` (motor, start, stop, npts, step of an `ascan`/`dscan`, else None), `scan.motor(name)`, `scan.detector` (`#UIMDET`) and `scan.roi` (`#UIMR5`). `scan.to_dataframe()` needs pandas.
 
 `qorageom.io`: `load_mat` (.mat `data` (y, x, frame) → (frame, y, x)), `load_tif_stack`, `load_h5`, `dump_h5` (print every group/dataset with shape, dtype and attributes).
 

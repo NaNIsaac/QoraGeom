@@ -39,6 +39,26 @@ def _xml_to_dict(element: ET.Element) -> Any:
     return result
 
 
+_MOTOR_ALIASES = {"del": "delta", "gam": "gamma"}
+
+
+def _normalize_motor(name: str) -> str:
+    name = re.sub(r"[^a-z0-9]", "", name.lower())
+    return _MOTOR_ALIASES.get(name, name)
+
+
+@dataclass(frozen=True)
+class ScanAxis:
+    motor: str
+    start: float
+    stop: float
+    npts: int
+
+    @property
+    def step(self) -> float:
+        return (self.stop - self.start) / self.npts
+
+
 @dataclass
 class SpecScan:
     scan_no: int
@@ -71,6 +91,40 @@ class SpecScan:
             logger.warning("XML parsing error on scan %s: %s", self.scan_no, e)
             self._uxml_dict = {"raw": self._raw_uxml}
         return self._uxml_dict
+
+    def motor(self, name: str) -> float:
+        """Start-of-scan position of a motor; case, punctuation and del/gam aliases are ignored."""
+        wanted = _normalize_motor(name)
+        for key, value in self.motors.items():
+            if _normalize_motor(key) == wanted:
+                return value
+        raise KeyError(f"Motor {name} not found in scan {self.scan_no}")
+
+    @property
+    def scan_axis(self) -> ScanAxis | None:
+        """Motor and range of an ``ascan``/``dscan``; None for other scan commands."""
+        parts = self.command.split()
+        if len(parts) < 5 or parts[0] not in ("ascan", "dscan"):
+            return None
+        try:
+            axis = ScanAxis(parts[1], float(parts[2]), float(parts[3]), int(parts[4]))
+        except ValueError:
+            return None
+        return axis if axis.npts > 0 else None
+
+    @property
+    def detector(self) -> str | None:
+        """Detector name from ``#UIMDET``, without the trailing colon."""
+        name = self.metadata.get("#UIMDET")
+        return name.removesuffix(":") if name else None
+
+    @property
+    def roi(self) -> list[int] | None:
+        """Detector ROI numbers from ``#UIMR5``."""
+        try:
+            return [int(n) for n in self.metadata["#UIMR5"].split()]
+        except (KeyError, ValueError):
+            return None
 
     def to_dataframe(self):
         """Scan data as a pandas DataFrame with the #L column names (needs pandas)."""
