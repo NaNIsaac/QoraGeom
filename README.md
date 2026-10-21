@@ -21,7 +21,7 @@ If you have no project yet, `uv init` makes one. The last command exits non-zero
 
 <!-- test -->
 ```bash
-uv init --python 3.13 qorageom-demo
+uv init --no-workspace --python 3.13 qorageom-demo
 cd qorageom-demo
 uv add "qorageom @ git+https://github.com/NaNIsaac/QoraGeom"
 uv run python -c "from qorageom import wavelength; assert abs(wavelength(8.04) - 1.54209) < 1e-4"
