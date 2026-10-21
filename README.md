@@ -1,6 +1,6 @@
 # QoraGeom
 
-[![Tests](https://github.com/NaNIsaac/QoraGeom/actions/workflows/tests.yml/badge.svg)](https://github.com/NaNIsaac/QoraGeom/actions/workflows/tests.yml) [![License: MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
+[![Tests](https://github.com/NaNIsaac/QoraGeom/actions/workflows/ci.yml/badge.svg)](https://github.com/NaNIsaac/QoraGeom/actions/workflows/ci.yml) [![License: MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 
 **X-ray diffraction geometry, SPEC parsing and detector-frame loaders for Python.**
 
