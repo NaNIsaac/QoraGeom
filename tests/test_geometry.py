@@ -63,7 +63,9 @@ def test_rotation_matrix_matches_rotate():
 
 
 def test_shear_correction_unrotated_detector():
-    B = shear_correction(wavelength=1e-10, delta_theta=1e-3, D=1.0, gamma=0.0, delta=0.0, pixel_size=5e-5)
+    B = shear_correction(
+        wavelength=1e-10, delta_theta=1e-3, D=1.0, gamma=0.0, delta=0.0, pixel_size=5e-5
+    )
     pref = 5e-5 / 1e-10
     np.testing.assert_allclose(B[:, 0], [pref, 0, 0])
     np.testing.assert_allclose(B[:, 1], [0, pref, 0])
@@ -77,11 +79,15 @@ def test_shear_correction_rocking_column():
     # rocking the crystal by dθ moves q along an arc: |Δq| = 2|q0| sin(dθ/2)
     assert np.linalg.norm(B[:, 2]) == pytest.approx(2 * q0 * np.sin(dth / 2), rel=1e-9)
     # the detector columns follow the 2θ arm
-    np.testing.assert_allclose(B[:, 0] / np.linalg.norm(B[:, 0]), [np.cos(delta), 0, -np.sin(delta)], atol=1e-12)
+    np.testing.assert_allclose(
+        B[:, 0] / np.linalg.norm(B[:, 0]), [np.cos(delta), 0, -np.sin(delta)], atol=1e-12
+    )
 
 
 def test_pixel_to_q_lab_center_matches_tth_to_q():
-    center, x_dir, y_dir = detector_pose(1.0, [1, 0, 0], [0, 1, 0], up_angle_deg=30, side_angle_deg=0)
+    center, x_dir, y_dir = detector_pose(
+        1.0, [1, 0, 0], [0, 1, 0], up_angle_deg=30, side_angle_deg=0
+    )
     q = pixel_to_q_lab(8.04, [1, 0, 0], center, x_dir, y_dir, pixel_size_m=55e-6, px=0, py=0)
     assert np.linalg.norm(q) == pytest.approx(tth_to_q(30.0, wavelength(8.04)))
 
@@ -92,7 +98,9 @@ def test_detector_pose_rejects_non_perpendicular():
 
 
 def test_pixel_to_q_lab_array_matches_per_pixel():
-    center, x_dir, y_dir = detector_pose(1.0, [1, 0, 0], [0, 1, 0], up_angle_deg=30, side_angle_deg=10)
+    center, x_dir, y_dir = detector_pose(
+        1.0, [1, 0, 0], [0, 1, 0], up_angle_deg=30, side_angle_deg=10
+    )
     args = (8.04, [1, 0, 0], center, x_dir, y_dir, 55e-6)
     py, px = np.mgrid[-2:3, -3:4]
     q = pixel_to_q_lab(*args, px, py)
@@ -116,24 +124,36 @@ ANGLES = {
 }
 
 
-@pytest.mark.parametrize("axis, theta0, chi0, phi0", [
-    ("theta", -71.3, 85.3, 12.0),
-    ("theta", 20.0, 90.0, 0.0),
-    ("phi", -71.3, 85.3, 12.0),
-    ("phi", 15.0, 60.0, -30.0),
-])
+@pytest.mark.parametrize(
+    "axis, theta0, chi0, phi0",
+    [
+        ("theta", -71.3, 85.3, 12.0),
+        ("theta", 20.0, 90.0, 0.0),
+        ("phi", -71.3, 85.3, 12.0),
+        ("phi", 15.0, 60.0, -30.0),
+    ],
+)
 def test_reciprocal_basis_k_matches_explicit_sample_rotation(axis, theta0, chi0, phi0):
     a = ANGLES
     step = 0.01
     B = reciprocal_basis(
-        a["lam"], np.radians(step), a["D"], a["gamma"], a["delta"], a["pix"],
-        theta=np.radians(theta0), chi=np.radians(chi0), axis=axis,
+        a["lam"],
+        np.radians(step),
+        a["D"],
+        a["gamma"],
+        a["delta"],
+        a["pix"],
+        theta=np.radians(theta0),
+        chi=np.radians(chi0),
+        axis=axis,
     )
 
     # fixed detector sees the lab q Q; the sample point it samples after the step is
     # R(motor + step)^-1 Q, expressed back in the starting orientation
     s1, s2, s3 = np.eye(3)
-    B_det = rotation_matrix(s2, np.rad2deg(a["delta"])) @ rotation_matrix(-s1, np.rad2deg(a["gamma"]))
+    B_det = rotation_matrix(s2, np.rad2deg(a["delta"])) @ rotation_matrix(
+        -s1, np.rad2deg(a["gamma"])
+    )
     Q = (B_det @ s3 - s3) / a["lam"]
     start = (theta0, chi0, phi0)
     moved = (theta0 + step, chi0, phi0) if axis == "theta" else (theta0, chi0, phi0 + step)
@@ -155,8 +175,17 @@ def test_reciprocal_basis_phi_with_chi_offset_removed_is_theta_rocking():
     a = ANGLES
     step = np.radians(0.01)
     # chi - chi_offset = 0 and theta = 0 leave the phi axis along lab y
-    phi = reciprocal_basis(a["lam"], step, a["D"], a["gamma"], a["delta"], a["pix"],
-                           theta=0.0, chi=np.pi / 2, axis="phi")
+    phi = reciprocal_basis(
+        a["lam"],
+        step,
+        a["D"],
+        a["gamma"],
+        a["delta"],
+        a["pix"],
+        theta=0.0,
+        chi=np.pi / 2,
+        axis="phi",
+    )
     theta = reciprocal_basis(a["lam"], step, a["D"], a["gamma"], a["delta"], a["pix"])
     np.testing.assert_allclose(phi, theta, atol=1e-6)
 
@@ -281,7 +310,9 @@ def test_energy_basis_k_matches_pixel_q_at_two_energies():
     # pixel_to_q_lab builds q from the two wavevectors, independent of the basis algebra
     delta_deg, energy, dE, D = 37.0, 9.0, 0.003, 0.5
     beam = [0, 0, 1]
-    center, x_dir, y_dir = detector_pose(D, beam, [0, 1, 0], up_angle_deg=0, side_angle_deg=delta_deg)
+    center, x_dir, y_dir = detector_pose(
+        D, beam, [0, 1, 0], up_angle_deg=0, side_angle_deg=delta_deg
+    )
 
     def q_lab(e):  # 1/Å with 2π -> 1/m without
         return pixel_to_q_lab(e, beam, center, x_dir, y_dir, 55e-6, 0, 0) / (2 * np.pi) * 1e10

@@ -1,4 +1,5 @@
 """Diffractometer circle layouts in xrayutilities axis notation ('y+', 'z-', ...)."""
+
 from dataclasses import dataclass
 
 import numpy as np
@@ -51,7 +52,14 @@ class Diffractometer:
         return _stack(self.detector_axes, angles_deg)
 
     def rocking_basis(
-        self, wavelength, D, pixel_size, sample_motors_deg, detector_motors_deg, rock, step,
+        self,
+        wavelength,
+        D,
+        pixel_size,
+        sample_motors_deg,
+        detector_motors_deg,
+        rock,
+        step,
         orientation=("x+", "y+"),
     ):
         """Detector-frame to reciprocal-space basis ``B`` of a rocking scan, ``q = B @ (i, j, k)``.
@@ -108,19 +116,25 @@ DIFFRACTOMETERS = {
     for d in (
         Diffractometer(
             "34idc",
-            ("y+", "z-", "y+"), ("th", "chi", "phi"),
-            ("y+", "x-"), ("delta", "gamma"),
+            ("y+", "z-", "y+"),
+            ("th", "chi", "phi"),
+            ("y+", "x-"),
+            ("delta", "gamma"),
             sample_offsets_deg=(0.0, 90.0, 0.0),
         ),
         Diffractometer(
             "P10sixc",
-            ("y+", "x-", "z+", "y-"), ("mu", "om", "chi", "phi"),
-            ("y+", "x-"), ("gam", "del"),
+            ("y+", "x-", "z+", "y-"),
+            ("mu", "om", "chi", "phi"),
+            ("y+", "x-"),
+            ("gam", "del"),
         ),
         Diffractometer(
             "id01",
-            ("y-", "x-", "y-"), ("mu", "eta", "phi"),
-            ("y-", "x-"), ("nu", "delta"),
+            ("y-", "x-", "y-"),
+            ("mu", "eta", "phi"),
+            ("y-", "x-"),
+            ("nu", "delta"),
         ),
     )
 }
@@ -130,4 +144,6 @@ def get_diffractometer(name: str) -> Diffractometer:
     try:
         return DIFFRACTOMETERS[name]
     except KeyError:
-        raise KeyError(f"Unknown diffractometer {name!r}, known: {sorted(DIFFRACTOMETERS)}") from None
+        raise KeyError(
+            f"Unknown diffractometer {name!r}, known: {sorted(DIFFRACTOMETERS)}"
+        ) from None

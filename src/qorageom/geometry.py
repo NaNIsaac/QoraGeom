@@ -49,9 +49,7 @@ def rotate(vector, axis, angle_deg):
 
     angle = np.deg2rad(angle_deg)
     return (
-        v * np.cos(angle)
-        + np.cross(a, v) * np.sin(angle)
-        + a * np.dot(a, v) * (1 - np.cos(angle))
+        v * np.cos(angle) + np.cross(a, v) * np.sin(angle) + a * np.dot(a, v) * (1 - np.cos(angle))
     )
 
 
@@ -87,8 +85,17 @@ def shear_correction(wavelength, delta_theta, D, gamma, delta, pixel_size):
 
 
 def reciprocal_basis(
-    wavelength, delta_rock, D, gamma, delta, pixel_size, theta=0.0, chi=0.0, *,
-    axis="theta", chi_offset=np.pi / 2,
+    wavelength,
+    delta_rock,
+    D,
+    gamma,
+    delta,
+    pixel_size,
+    theta=0.0,
+    chi=0.0,
+    *,
+    axis="theta",
+    chi_offset=np.pi / 2,
 ):
     """Detector-frame to reciprocal-space basis for a rocking scan about theta or phi (34-ID-C).
 
@@ -193,11 +200,13 @@ def lab_voxel_size(wavelength, D, pixel_size, shape, delta_rock, fov_min=0.7):
     """
     n1, n2, n3 = shape
     p1, p2 = np.broadcast_to(pixel_size, 2)
-    edges = np.array([
-        wavelength * D / p1 / n1,
-        wavelength * D / p2 / n2,
-        abs(wavelength / delta_rock / n3),
-    ])
+    edges = np.array(
+        [
+            wavelength * D / p1 / n1,
+            wavelength * D / p2 / n2,
+            abs(wavelength / delta_rock / n3),
+        ]
+    )
     return max(edges.min(), fov_min * edges.max())
 
 

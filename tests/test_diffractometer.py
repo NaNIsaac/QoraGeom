@@ -12,11 +12,14 @@ from qorageom import (
 from qorageom.diffractometer import axis_vector
 
 
-@pytest.mark.parametrize("axis, vector", [
-    ("x+", [1, 0, 0]),
-    ("y-", [0, -1, 0]),
-    ("z+", [0, 0, 1]),
-])
+@pytest.mark.parametrize(
+    "axis, vector",
+    [
+        ("x+", [1, 0, 0]),
+        ("y-", [0, -1, 0]),
+        ("z+", [0, 0, 1]),
+    ],
+)
 def test_axis_vector(axis, vector):
     np.testing.assert_array_equal(axis_vector(axis), vector)
 
@@ -31,7 +34,9 @@ def test_34idc_sample_rotation_is_theta_chi_phi_from_outer_to_inner():
     th, chi, phi = 12.0, -30.0, 47.0
     Ry, Rz = (lambda a: rotation_matrix([0, 1, 0], a)), (lambda a: rotation_matrix([0, 0, 1], a))
     expected = Ry(th) @ Rz(-chi) @ Ry(phi)
-    np.testing.assert_allclose(get_diffractometer("34idc").sample_rotation([th, chi, phi]), expected)
+    np.testing.assert_allclose(
+        get_diffractometer("34idc").sample_rotation([th, chi, phi]), expected
+    )
 
 
 def test_34idc_detector_rotation_matches_reciprocal_basis_convention():
@@ -94,7 +99,9 @@ def _stack_rot(axes, angles_deg):
 def _q_sample(diff, sample, detector, wavelength=LAM, pixel=(0.0, 0.0), orientation=("x+", "y+")):
     """q in the sample frame, no 2π, of the pixel (i, j) away from the center."""
     beam = np.array(diff.incident_axis)
-    pos = D * beam + PIX * (pixel[0] * axis_vector(orientation[0]) + pixel[1] * axis_vector(orientation[1]))
+    pos = D * beam + PIX * (
+        pixel[0] * axis_vector(orientation[0]) + pixel[1] * axis_vector(orientation[1])
+    )
     kf = _stack_rot(diff.detector_axes, detector) @ pos / np.linalg.norm(pos)
     return _stack_rot(diff.sample_axes, sample).T @ (kf - beam) / wavelength
 
@@ -133,7 +140,9 @@ def test_rocking_basis_pixel_columns_match_a_pixel_step(name, sample, detector, 
     base = _q_sample(diff, start, detector, orientation=orientation)
     for column, pixel in ((0, (1, 0)), (1, (0, 1))):
         step = R @ (_q_sample(diff, start, detector, pixel=pixel, orientation=orientation) - base)
-        np.testing.assert_allclose(B[:, column], step, rtol=1e-3, atol=1e-3 * np.linalg.norm(B[:, column]))
+        np.testing.assert_allclose(
+            B[:, column], step, rtol=1e-3, atol=1e-3 * np.linalg.norm(B[:, column])
+        )
 
 
 @pytest.mark.parametrize("rock, axis", [("th", "theta"), ("phi", "phi")])
@@ -144,8 +153,15 @@ def test_rocking_basis_reproduces_reciprocal_basis_for_34idc(rock, axis):
         LAM, D, PIX, sample, [37.0, -1.0], rock, 0.01
     )
     ref = reciprocal_basis(
-        LAM, np.radians(0.01), D, gamma, delta, PIX,
-        theta=np.radians(sample[0]), chi=np.radians(sample[1]), axis=axis,
+        LAM,
+        np.radians(0.01),
+        D,
+        gamma,
+        delta,
+        PIX,
+        theta=np.radians(sample[0]),
+        chi=np.radians(sample[1]),
+        axis=axis,
     )
     np.testing.assert_allclose(generic, ref, rtol=1e-12, atol=1e-6)
 

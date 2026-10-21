@@ -1,4 +1,5 @@
 """Detector pixel sizes and orientations, in the notation of cohere's beamline modules."""
+
 from dataclasses import dataclass
 
 

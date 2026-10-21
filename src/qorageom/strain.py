@@ -1,4 +1,5 @@
 """Strain along the scattering vector from the phase of a reconstructed Bragg peak."""
+
 import numpy as np
 
 _OFFSETS = (0.0, np.pi / 2, -np.pi / 2)

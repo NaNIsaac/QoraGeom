@@ -46,8 +46,11 @@ def test_to_dataframe_empty_when_no_data():
 def test_motors_zips_strict(spec_file: Path):
     scan = Spec(spec_file).get_scan(1)
     assert scan.motors == {
-        "mot_a": 0.1, "mot_b": 0.2, "mot_c": 0.3,
-        "mot_d": 0.4, "mot_e": 0.5,
+        "mot_a": 0.1,
+        "mot_b": 0.2,
+        "mot_c": 0.3,
+        "mot_d": 0.4,
+        "mot_e": 0.5,
     }
 
 
@@ -116,7 +119,6 @@ def test_with_context_loads_when_empty(spec_file: Path):
         assert 1 in spec.scans
 
 
-
 def test_xml_to_dict_handles_negative_int():
     elem = ET.fromstring("<v>-5</v>")
     assert _xml_to_dict(elem) == -5
@@ -145,13 +147,16 @@ def test_scan_axis_from_fixture(spec_file: Path):
     assert axis.step == pytest.approx(0.4)
 
 
-@pytest.mark.parametrize("command", [
-    "mesh a 0 1 2 b 0 1 2 1",
-    "ascan Phi 1 2",
-    "ascan Phi 1 two 10 1",
-    "ascan Phi 1 2 0 1",
-    "",
-])
+@pytest.mark.parametrize(
+    "command",
+    [
+        "mesh a 0 1 2 b 0 1 2 1",
+        "ascan Phi 1 2",
+        "ascan Phi 1 two 10 1",
+        "ascan Phi 1 2 0 1",
+        "",
+    ],
+)
 def test_scan_axis_none_for_unsupported_commands(command: str):
     assert _scan(command).scan_axis is None
 

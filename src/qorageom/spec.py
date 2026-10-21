@@ -1,4 +1,5 @@
 """SPEC (Certified Scientific Software) scan file parser: #O/#P motors, #D time, #UXML."""
+
 import logging
 import re
 import xml.etree.ElementTree as ET
@@ -209,7 +210,9 @@ class Spec:
                 parts = line.split(maxsplit=2)
                 scan_no = int(parts[1])
                 command = parts[2] if len(parts) > 2 else ""
-                current_scan = SpecScan(scan_no=scan_no, command=command, motor_names=list(self.motor_names))
+                current_scan = SpecScan(
+                    scan_no=scan_no, command=command, motor_names=list(self.motor_names)
+                )
                 self.scans[scan_no] = current_scan
                 continue
 
@@ -220,7 +223,7 @@ class Spec:
                         self.motor_names.extend(parts[1].split())
                 else:
                     tag = line.split(" ", 1)[0]
-                    self.file_metadata[tag] = line[len(tag):].strip()
+                    self.file_metadata[tag] = line[len(tag) :].strip()
             elif not line.startswith("#"):
                 try:
                     current_scan.data.append(list(map(float, line.split())))
@@ -240,7 +243,7 @@ class Spec:
                     current_scan._raw_uxml.append(xml_content)
             else:
                 tag = line.split(" ", 1)[0]
-                current_scan.metadata[tag] = line[len(tag):].strip()
+                current_scan.metadata[tag] = line[len(tag) :].strip()
 
     def get_scan(self, scan_no: int) -> SpecScan:
         if not self.scans:

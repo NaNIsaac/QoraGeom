@@ -1,4 +1,5 @@
 """One call from a SPEC scan to the reciprocal and direct bases of its volume."""
+
 from dataclasses import dataclass, replace
 
 import numpy as np
@@ -48,7 +49,11 @@ def _missing(scan: SpecScan, what: str, override: str):
 
 
 def geometry_from_spec(
-    scan: SpecScan, diffractometer="34idc", detector=None, shape=None, binning=(1, 1, 1),
+    scan: SpecScan,
+    diffractometer="34idc",
+    detector=None,
+    shape=None,
+    binning=(1, 1, 1),
     **overrides,
 ) -> ScanGeometry:
     """Geometry of a rocking scan from the values in its SPEC header.
@@ -90,7 +95,8 @@ def geometry_from_spec(
     offsets = tuple(
         overrides.get(f"{mne}_offset", default)
         for mne, default in zip(
-            diff.sample_motors, diff.sample_offsets_deg or (0.0,) * len(diff.sample_motors),
+            diff.sample_motors,
+            diff.sample_offsets_deg or (0.0,) * len(diff.sample_motors),
             strict=True,
         )
     )
@@ -122,9 +128,14 @@ def geometry_from_spec(
     energy_kev, step_kev = energy_to_kev(energy_raw, step)
     lam = wavelength(energy_kev) * 1e-10
     B = replace(diff, sample_offsets_deg=offsets).rocking_basis(
-        lam, distance, pixel,
-        [readings[m] for m in diff.sample_motors], [readings[m] for m in diff.detector_motors],
-        rock or "energy", step_kev / energy_kev if rock is None else step, det.orientation,
+        lam,
+        distance,
+        pixel,
+        [readings[m] for m in diff.sample_motors],
+        [readings[m] for m in diff.detector_motors],
+        rock or "energy",
+        step_kev / energy_kev if rock is None else step,
+        det.orientation,
     )
     # for energy the angular step of lab_voxel_size is the one whose edge is 1 / (|q_k| N3)
     rock_step = np.radians(step) if rock else lam * np.linalg.norm(B[:, 2])

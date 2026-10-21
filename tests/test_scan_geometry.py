@@ -26,8 +26,9 @@ def _spec(tmp_path, *, motors=None, detector="34idcTIM2:", scan="phi"):
     command, positions = SCANS[scan]
     names = "Delta Gamma Theta Chi Phi Energy camdist"
     if motors is not None:
-        positions = " ".join(p for p, n in zip(positions.split(), names.split(), strict=True)
-                             if n in motors)
+        positions = " ".join(
+            p for p, n in zip(positions.split(), names.split(), strict=True) if n in motors
+        )
         names = " ".join(motors)
     text = f"#F geom.spec\n#O0 {names}\n\n#S 1 {command}\n#P0 {positions}\n"
     if detector:
@@ -59,8 +60,14 @@ def test_spec_helpers_use_motors(tmp_path):
 def test_phi_scan_matches_reciprocal_basis(tmp_path):
     geom = geometry_from_spec(_spec(tmp_path), shape=SHAPE)
     expected = reciprocal_basis(
-        LAM, np.radians(0.01), 0.5, **ANGLES, pixel_size=55e-6,
-        theta=np.radians(-71.35), chi=np.radians(85.26), axis="phi",
+        LAM,
+        np.radians(0.01),
+        0.5,
+        **ANGLES,
+        pixel_size=55e-6,
+        theta=np.radians(-71.35),
+        chi=np.radians(85.26),
+        axis="phi",
     )
     expected[:, 1] *= -1  # TIM2 axis 1 runs along y-
     np.testing.assert_allclose(geom.B, expected)
@@ -92,8 +99,15 @@ def test_overrides_win_over_the_file(tmp_path):
     assert moved.energy_kev == pytest.approx(9.5)
     assert moved.distance_m == 1.0
     expected = reciprocal_basis(
-        wavelength(9.5) * 1e-10, np.radians(0.01), 1.0, np.radians(-1.0), np.radians(40.0),
-        55e-6, theta=np.radians(-71.35), chi=np.radians(85.26), axis="phi",
+        wavelength(9.5) * 1e-10,
+        np.radians(0.01),
+        1.0,
+        np.radians(-1.0),
+        np.radians(40.0),
+        55e-6,
+        theta=np.radians(-71.35),
+        chi=np.radians(85.26),
+        axis="phi",
     )
     np.testing.assert_allclose(moved.B[:, 2], expected[:, 2])
 
@@ -104,7 +118,9 @@ def test_binning_scales_pixels_and_step(tmp_path):
     binned = geometry_from_spec(scan, shape=SHAPE, binning=(2, 4, 3))
     np.testing.assert_allclose(binned.B[:, 0], 2 * one.B[:, 0])
     np.testing.assert_allclose(binned.B[:, 1], 4 * one.B[:, 1])
-    assert np.linalg.norm(binned.B[:, 2]) == pytest.approx(3 * np.linalg.norm(one.B[:, 2]), rel=1e-3)
+    assert np.linalg.norm(binned.B[:, 2]) == pytest.approx(
+        3 * np.linalg.norm(one.B[:, 2]), rel=1e-3
+    )
 
 
 def test_scanmot_override_for_other_commands(tmp_path):
@@ -133,12 +149,15 @@ def test_missing_shape_names_the_argument(tmp_path):
 
 def test_missing_energy_and_distance_name_the_override(tmp_path):
     with pytest.raises(ValueError, match="energy=") as err:
-        geometry_from_spec(_spec(tmp_path, motors=["Delta", "Gamma", "Theta", "Chi", "Phi", "camdist"]),
-                           shape=SHAPE)
+        geometry_from_spec(
+            _spec(tmp_path, motors=["Delta", "Gamma", "Theta", "Chi", "Phi", "camdist"]),
+            shape=SHAPE,
+        )
     assert "scan 1" in str(err.value)
     with pytest.raises(ValueError, match="distance_m="):
-        geometry_from_spec(_spec(tmp_path, motors=["Delta", "Gamma", "Theta", "Chi", "Phi", "Energy"]),
-                           shape=SHAPE)
+        geometry_from_spec(
+            _spec(tmp_path, motors=["Delta", "Gamma", "Theta", "Chi", "Phi", "Energy"]), shape=SHAPE
+        )
 
 
 def test_missing_motor_and_scan_axis(tmp_path):
@@ -167,12 +186,22 @@ def test_unknown_override_and_diffractometer(tmp_path):
 def test_id01_and_p10_geometry_from_overrides(tmp_path):
     scan = _spec(tmp_path)
     angles = {"mu": 0.5, "eta": 20.0, "phi": 3.0, "nu": 0.7, "delta": 30.0}
-    id01 = geometry_from_spec(scan, diffractometer="id01", shape=SHAPE, scanmot="eta",
-                              scanmot_del=0.01, **angles)
+    id01 = geometry_from_spec(
+        scan, diffractometer="id01", shape=SHAPE, scanmot="eta", scanmot_del=0.01, **angles
+    )
     assert id01.axis == "eta"
     p10 = geometry_from_spec(
-        scan, diffractometer="P10sixc", shape=SHAPE, scanmot="om", scanmot_del=0.01,
-        mu=0.5, om=20.0, chi=1.0, phi=3.0, gam=0.7, **{"del": 30.0},
+        scan,
+        diffractometer="P10sixc",
+        shape=SHAPE,
+        scanmot="om",
+        scanmot_del=0.01,
+        mu=0.5,
+        om=20.0,
+        chi=1.0,
+        phi=3.0,
+        gam=0.7,
+        **{"del": 30.0},
     )
     assert p10.axis == "om"
     assert np.all(np.isfinite(p10.B)) and np.all(np.isfinite(id01.B))

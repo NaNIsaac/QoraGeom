@@ -2,6 +2,7 @@
 
 Needs the examples group: uv run --group examples python examples/bcdi_pipeline.py
 """
+
 import time
 
 import numpy as np
@@ -54,8 +55,10 @@ def main():
     # the same estimator on the true phase: what voxel size and finite differences cost alone
     floor = (strain(np.angle(obj), G, VOXEL, support) - true_strain)[support]
     print(f"reconstruction: {elapsed:.0f} s, Fourier error {best.error:.1e}")
-    print(f"true strain:  rms {np.sqrt(np.mean(true_strain[support] ** 2)):.2e}, "
-          f"range [{true_strain[support].min():.2e}, {true_strain[support].max():.2e}]")
+    print(
+        f"true strain:  rms {np.sqrt(np.mean(true_strain[support] ** 2)):.2e}, "
+        f"range [{true_strain[support].min():.2e}, {true_strain[support].max():.2e}]"
+    )
     print(f"estimator floor on the true phase: rms {np.sqrt(np.mean(floor**2)):.2e}")
     print(f"strain error: rms {np.sqrt(np.mean(error**2)):.2e}, max {np.abs(error).max():.2e}")
 
