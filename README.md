@@ -13,11 +13,24 @@ TIFF and HDF5.
 
 ## Install
 
-Requires Python 3.13+ with numpy and scipy; h5py, tifffile and pandas are optional extras. Not on PyPI; install from git:
+Requires Python 3.13+ with numpy and scipy; h5py, tifffile and pandas are optional extras. Not on PyPI; install from git.
+
+**1. Install into a uv project, then check the import**
+
+If you have no project yet, `uv init` makes one. The last command exits non-zero if the install is broken.
+
+<!-- test -->
+```bash
+uv init --python 3.13 qorageom-demo
+cd qorageom-demo
+uv add "qorageom @ git+https://github.com/NaNIsaac/QoraGeom"
+uv run python -c "from qorageom import wavelength; assert abs(wavelength(8.04) - 1.54209) < 1e-4"
+```
+
+With the optional loaders instead:
 
 ```bash
-uv add "qorageom @ git+https://github.com/NaNIsaac/QoraGeom"
-uv add "qorageom[h5,tiff,pandas] @ git+https://github.com/NaNIsaac/QoraGeom"   # with the optional loaders
+uv add "qorageom[h5,tiff,pandas] @ git+https://github.com/NaNIsaac/QoraGeom"
 ```
 
 ## Usage
