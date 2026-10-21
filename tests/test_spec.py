@@ -1,3 +1,4 @@
+import xml.etree.ElementTree as ET
 from datetime import datetime
 from pathlib import Path
 
@@ -5,7 +6,6 @@ import pandas as pd
 import pytest
 
 from qorageom.spec import Spec, SpecScan, _xml_to_dict
-import xml.etree.ElementTree as ET
 
 
 def test_parses_scan_metadata(spec_file: Path):

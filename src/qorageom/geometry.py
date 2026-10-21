@@ -1,6 +1,7 @@
+from math import tau
+
 import numpy as np
 from scipy.ndimage import map_coordinates
-from math import tau
 
 HC_KEV_ANGSTROM = 12.398419843320026  # CODATA 2018 hc [keV·Å]
 

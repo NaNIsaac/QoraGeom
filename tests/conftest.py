@@ -2,7 +2,6 @@ from pathlib import Path
 
 import pytest
 
-
 SPEC_FIXTURE = """\
 #F sample.spec
 #E 1700000000

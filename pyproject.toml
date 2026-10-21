@@ -37,10 +37,7 @@ line-length = 100
 
 # violations present when ruff became mandatory in CI; remove entries as they are fixed
 [tool.ruff.lint.extend-per-file-ignores]
-"src/qorageom/geometry.py" = ["I001"]
 "src/qorageom/spec.py" = ["PYI034"]
-"tests/conftest.py" = ["I001"]
-"tests/test_spec.py" = ["I001"]
 
 [tool.uv.sources]
 qoraphase = { git = "https://github.com/NaNIsaac/QoraPhase" }
