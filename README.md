@@ -13,7 +13,7 @@ TIFF and HDF5.
 
 ## Install
 
-Requires Python 3.13+ with numpy and scipy; h5py, tifffile and pandas are optional extras. Not on PyPI; install from git.
+Requires Python 3.13+ with numpy and scipy; h5py, tifffile and pandas are optional extras. Not on PyPI yet; install from git. The first release will add `pip install qorageom`.
 
 **1. Install into a uv project, then check the import**
 

@@ -1,0 +1,8 @@
+{
+  "sidebar": [
+    {
+      "text": "Getting Started",
+      "items": [{ "text": "Overview", "link": "index.md" }]
+    }
+  ]
+}
