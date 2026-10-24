@@ -277,7 +277,7 @@ def detector_pose(
     up_angle_deg,
     side_angle_deg,
 ):
-    """예제 장비의 각도에서 검출기 중심과 두 픽셀 방향을 구한다."""
+    """Detector center and the two pixel directions for the example instrument's angles."""
     incident = np.asarray(incident_dir, dtype=float)
     up = np.asarray(scatter_up, dtype=float)
     incident = incident / np.linalg.norm(incident)
