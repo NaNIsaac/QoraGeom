@@ -82,13 +82,15 @@ def test_geometry_from_spec_matches_golden(tmp_path, name):
     got = compute(tmp_path, name)
     for key in ("diffractometer", "detector", "axis", "shape"):
         assert got[key] == expected[key], key
-    # rounding differs between BLAS builds in the last bits; anything larger is a change
+    # The rocking column is the difference R0 R1^T q0 - q0 for steps down to 1e-3 deg
+    # (1.7e-5 rad), which loses about five digits, and A inverts B (cond up to 50 here): libm
+    # differences between platforms reach 2.5e-12 relative (macOS CI). A real change is >= 1e-6.
     for key, value in expected.items():
         if isinstance(value, str) or key == "shape":
             continue
         want = np.asarray(value, dtype=float)
         np.testing.assert_allclose(
-            got[key], want, rtol=1e-12, atol=1e-12 * np.abs(want).max(), err_msg=key
+            got[key], want, rtol=1e-9, atol=1e-9 * np.abs(want).max(), err_msg=key
         )
 
 
