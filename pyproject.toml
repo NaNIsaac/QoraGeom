@@ -1,13 +1,13 @@
 [project]
 name = "qorageom"
 version = "0.1.0"
-description = "X-ray diffraction geometry (2θ, q, d, detector pixel q, BCDI reciprocal basis), SPEC parser and detector frame loaders"
+description = "X-ray diffraction geometry: 2θ, q, d, detector pixel q, diffractometer rotations, BCDI reciprocal basis and strain"
 readme = "README.md"
 license = "MIT"
 license-files = ["LICENSE*"]
 authors = [{ name = "Isaac Yong", email = "isaacyong@naver.com" }]
 requires-python = ">=3.13"
-keywords = ["x-ray diffraction", "BCDI", "SPEC", "reciprocal space", "detector geometry"]
+keywords = ["x-ray diffraction", "BCDI", "diffractometer", "reciprocal space", "detector geometry"]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Science/Research",
@@ -22,11 +22,6 @@ dependencies = [
     "scipy>=1.17",
 ]
 
-[project.optional-dependencies]
-h5 = ["h5py>=3.12"]
-tiff = ["tifffile>=2025.1"]
-pandas = ["pandas>=2.2"]
-
 [project.urls]
 Homepage = "https://github.com/NaNIsaac/QoraGeom"
 Repository = "https://github.com/NaNIsaac/QoraGeom"
@@ -39,19 +34,11 @@ build-backend = "uv_build"
 
 [dependency-groups]
 examples = ["qoraphase"]
-dev = [
-    "h5py>=3.12",
-    "pandas>=2.2",
-    "pytest>=9.0",
-    "tifffile>=2025.1",
-]
+dev = ["pytest>=9.0"]
 
 [tool.ruff]
 line-length = 100
 
-# violations present when ruff became mandatory in CI; remove entries as they are fixed
-[tool.ruff.lint.extend-per-file-ignores]
-"src/qorageom/spec.py" = ["PYI034"]
 
 [tool.uv.sources]
 qoraphase = { git = "https://github.com/NaNIsaac/QoraPhase" }

@@ -6,26 +6,27 @@
 
 Per-pixel 2θ and |q| from `tth_map` for one detector at two arm tilts ([script](docs/media/make_figure.py)).
 
-**X-ray diffraction geometry, SPEC parsing and detector-frame loaders for Python.**
+**X-ray diffraction geometry for Python.**
 
-QoraGeom handles the geometry and file-reading steps of analysing X-ray
-diffraction data from area detectors. It converts between photon energy,
+QoraGeom handles the geometry of analysing X-ray diffraction data from area
+detectors. It converts between photon energy,
 wavelength, 2θ, |q| and d-spacing, computes the true 2θ and lab-frame q of every
-pixel of a flat detector on a tilted arm, builds the BCDI reciprocal-space basis
-for a rocking scan, reads SPEC data files and loads detector frames from .mat,
-TIFF and HDF5.
+pixel of a flat detector on a tilted arm and builds the BCDI reciprocal-space basis
+for a rocking scan. It reads no file format: SPEC files and detector frames are
+read by the applications, for example [CXD](https://github.com/NaNIsaac/CXD)'s
+`cxd.io`, which pass plain values to these functions.
 
 ## Project boundary (current vs planned)
 
-**Current implementation:** QoraGeom contains diffraction geometry, coordinates and reciprocal-space utilities **and** legacy SPEC parsing and optional MAT/TIFF/HDF5 frame loaders. The README examples below describe the code as it works today.
+**Current implementation:** QoraGeom contains diffraction geometry, coordinates, reciprocal-space and strain functions only. No module reads a file format and `import qorageom` loads no reader (`tests/test_import_boundary.py`). The SPEC parser, `geometry_from_spec` and the .mat/TIFF/HDF5 frame loaders that used to be here moved to CXD's I/O layer `cxd.io`; there are no compatibility aliases. The README examples below describe the code as it works today.
 
-**Intended long-term boundary:** keep the reusable geometry/numerical core independent of experiment-file formats. SPEC and detector-frame readers can remain temporarily for compatibility while dedicated I/O and application layers take over. Do not remove or move existing import paths until downstream consumers (including [CXD](https://github.com/NaNIsaac/CXD)) are checked and migration/compatibility tests exist.
+**Boundary:** the reusable geometry/numerical core stays independent of experiment-file formats; file readers belong to the I/O and application layers that use them ([CXD](https://github.com/NaNIsaac/CXD) `cxd.io` today). CXD moved its users to `cxd.io` before the readers were removed here (CXD#22).
 
 This boundary is an architectural direction, **not** a claim that the file readers have already been removed.
 
 ## Install
 
-Requires Python 3.13+ with numpy and scipy; h5py, tifffile and pandas are optional extras. Not on PyPI yet; install from git. The first release will add `pip install qorageom`.
+Requires Python 3.13+ with numpy and scipy. Not on PyPI yet; install from git. The first release will add `pip install qorageom`.
 
 **1. Install into a uv project, then check the import**
 
@@ -37,12 +38,6 @@ uv init --no-workspace --python 3.13 qorageom-demo
 cd qorageom-demo
 uv add "qorageom @ git+https://github.com/NaNIsaac/QoraGeom"
 uv run python -c "from qorageom import wavelength; assert abs(wavelength(8.04) - 1.54209) < 1e-4"
-```
-
-With the optional loaders instead:
-
-```bash
-uv add "qorageom[h5,tiff,pandas] @ git+https://github.com/NaNIsaac/QoraGeom"
 ```
 
 ## Usage
@@ -144,24 +139,6 @@ wrapped = np.angle(np.exp(1j * 10.0 * 0.02 * x))  # G = 10 rad/nm along x, strai
 strain(wrapped, [10.0, 0, 0], voxel_size=0.5)[6, 6, 6]  # 0.020000000000000007
 ```
 
-```python
-from qorageom.spec import Spec
-
-with Spec("path/to/specfile") as sp:
-    scan = sp.get_scan(1)
-    scan.motors  # {'Theta': 10.0, 'Delta': 69.0, 'Gamma': 0.0}
-    scan.sdd  # 511, from #UXML <sample_detector_distance>
-    scan.to_dataframe()
-```
-
-```python
-# scan 1: "ascan Phi 0.5 -0.5 20 2", #UIMDET Timepix:, #UIMR5 100 120 64 64
-scan.scan_axis  # ScanAxis(motor='Phi', start=0.5, stop=-0.5, intervals=20)
-scan.scan_axis.step  # -0.05
-scan.motor("del")  # 69.0, matches Delta ignoring case and the del/gam aliases
-scan.detector, scan.roi  # ('Timepix', [100, 120, 64, 64])
-```
-
 `main.py` prints the detector pose and the q vector of pixel (1, 1) for an 8.04 keV beam, a 1 m detector distance and a 30° up angle:
 
 ```
@@ -198,18 +175,14 @@ q_lab:       [-5.45985588e-01  2.03742181e+00 -2.24095052e-04]
 
 `qorageom.detector`: `Detector` (pixel size [m], axis orientation, frame shape), `DETECTORS` and `get_detector(name)` for `34idcTIM1`, `34idcTIM2`, `ASI`, `mpxgaas` and `e4m`.
 
-`qorageom.scan_geometry`: `geometry_from_spec(scan, diffractometer="34idc", detector=None, shape=None, binning=(1, 1, 1), **overrides)` and the `ScanGeometry` it returns.
+`qorageom.scan_geometry`: `rocking_scan_geometry(shape, energy_kev, distance_m, sample_angles_deg, detector_angles_deg, rock, step, *, diffractometer, detector, binning=(1, 1, 1), sample_offsets_deg=None)` and the `ScanGeometry` it returns: the bases, lab voxel size and diagnostics of a rocking scan (angles in degrees as a sequence in motor order or a mapping by motor name; `step` in degrees per frame, or keV per frame for `rock="energy"`). `diffractometer` and `detector` take a registry name or an instance.
 
-`qorageom.spec`: `Spec`, `SpecScan`. Reads `#O/#P` motor positions, `#D` time, `#L` columns and data, and `#UXML` metadata (`scan.sdd`, `scan.rois`, `scan.beam_center`). `scan.scan_axis` (motor, start, stop, intervals, step of an `ascan`/`dscan`, else None), `scan.motor(name)`, `scan.detector` (`#UIMDET`) and `scan.roi` (`#UIMR5`), `scan.energy_kev` and `scan.detector_distance_m` (`camdist` or `sdd`, mm to m). `scan.to_dataframe()` needs pandas.
+## From a rocking scan to a lab-frame volume
 
-`qorageom.io`: `load_mat` (.mat `data` (y, x, frame) → (frame, y, x)), `load_tif_stack`, `load_h5`, `dump_h5` (print every group/dataset with shape, dtype and attributes).
-
-## From a SPEC scan to a lab-frame volume
-
-`geometry_from_spec` reads the circle angles, energy, detector name and distance, and the rocking motor from a scan header, builds the basis from the diffractometer's axis strings (`Diffractometer.rocking_basis`, the same construction as xrayutilities' `QConversion`), and returns a `ScanGeometry` with the bases, the lab voxel size and the basis diagnostics. It covers every layout in the registry (`34idc`, `P10sixc`, `id01`) for rocking about any one sample circle or the energy. Keyword overrides (`delta=`, `energy=`, `distance_m=`, `detector=`, `chi_offset=`, ...) win over the file, and a missing value raises an error that names the keyword to pass. `examples/spec_to_lab.py` writes a one-scan SPEC file and resamples a volume:
+`rocking_scan_geometry` takes the circle readings, energy, detector distance, detector and the rocking motor and step, builds the basis from the diffractometer's axis strings (`Diffractometer.rocking_basis`, the same construction as xrayutilities' `QConversion`), and returns a `ScanGeometry` with the bases, the lab voxel size and the basis diagnostics. It covers every layout in the registry (`34idc`, `P10sixc`, `id01`) for rocking about any one sample circle or the energy. Reading those values from a SPEC header is `cxd.io.spec.geometry_from_spec` in CXD. `examples/scan_to_lab.py` resamples a volume:
 
 ```bash
-uv run python examples/spec_to_lab.py
+uv run python examples/scan_to_lab.py
 ```
 
 ```

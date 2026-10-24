@@ -1,7 +1,7 @@
 cff-version: 1.2.0
 message: "If you use this software, please cite it as below."
 type: software
-title: "QoraGeom: X-ray diffraction geometry, SPEC parser and detector frame loaders"
+title: "QoraGeom: X-ray diffraction geometry"
 authors:
   - family-names: Yong
     given-names: Isaac
@@ -9,7 +9,7 @@ authors:
     affiliation: "Sogang University"
 license: MIT
 repository-code: "https://github.com/NaNIsaac/QoraGeom"
-abstract: "Shared core for X-ray diffraction analysis: 2theta/q/d conversions, detector pixel q in the lab frame, the BCDI reciprocal basis, a SPEC scan-file parser and loaders for .mat, TIFF and HDF5 detector frames."
+abstract: "Shared core for X-ray diffraction analysis: 2theta/q/d conversions, detector pixel q in the lab frame, the BCDI reciprocal basis of a rocking scan, diffractometer rotations and strain from a phase."
 keywords:
   - "X-ray scattering"
   - "detector geometry"
