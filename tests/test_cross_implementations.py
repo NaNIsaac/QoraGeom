@@ -86,7 +86,17 @@ def test_34idc_arm_obeys_cos_2theta_product():
 
 
 def test_cxd_theory_delta_inverts_two_theta():
-    f = load("CXD/src/cxd/gam_del.py", "calculate_theory_delta")["calculate_theory_delta"]
+    # CXD moved the tool from the package to scripts/ (CXD#20); older checkouts have the old path
+    path = next(
+        (
+            p
+            for p in ("CXD/scripts/gam_del.py", "CXD/src/cxd/gam_del.py")
+            if (ROOT / p).is_file()
+            and "calculate_theory_delta" in (ROOT / p).read_text(encoding="utf-8")
+        ),
+        "CXD/scripts/gam_del.py",
+    )
+    f = load(path, "calculate_theory_delta")["calculate_theory_delta"]
     for tth, gamma, delta in zip(TTH.ravel(), GAMMA.ravel(), DELTA.ravel(), strict=True):
         assert f(np.array([gamma]), tth)[0] == pytest.approx(delta, abs=1e-6)
 
