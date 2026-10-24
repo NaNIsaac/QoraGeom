@@ -3,8 +3,20 @@ name = "qorageom"
 version = "0.1.0"
 description = "X-ray diffraction geometry (2θ, q, d, detector pixel q, BCDI reciprocal basis), SPEC parser and detector frame loaders"
 readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE*"]
 authors = [{ name = "Isaac Yong", email = "isaacyong@naver.com" }]
 requires-python = ">=3.13"
+keywords = ["x-ray diffraction", "BCDI", "SPEC", "reciprocal space", "detector geometry"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Topic :: Scientific/Engineering :: Physics",
+    "Typing :: Typed",
+]
 dependencies = [
     "numpy>=2.4",
     "scipy>=1.17",
@@ -18,6 +30,8 @@ pandas = ["pandas>=2.2"]
 [project.urls]
 Homepage = "https://github.com/NaNIsaac/QoraGeom"
 Repository = "https://github.com/NaNIsaac/QoraGeom"
+Issues = "https://github.com/NaNIsaac/QoraGeom/issues"
+Changelog = "https://github.com/NaNIsaac/QoraGeom/blob/main/CHANGELOG.md"
 
 [build-system]
 requires = ["uv_build>=0.11.32,<0.12.0"]
