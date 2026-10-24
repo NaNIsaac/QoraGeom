@@ -8,8 +8,7 @@ from pathlib import Path
 
 import numpy as np
 
-from qorageom import geometry_from_spec
-from qorageom.spec import Spec
+from qorageom.adapters.spec import Spec, geometry_from_spec
 
 SPEC = """\
 #F scan.spec

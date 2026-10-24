@@ -5,7 +5,7 @@ from pathlib import Path
 import pandas as pd
 import pytest
 
-from qorageom.spec import Spec, SpecScan, _xml_to_dict
+from qorageom.adapters.spec import Spec, SpecScan, _xml_to_dict
 
 
 def test_parses_scan_metadata(spec_file: Path):

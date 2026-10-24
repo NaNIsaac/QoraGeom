@@ -12,8 +12,7 @@ from pathlib import Path
 import numpy as np
 import pytest
 
-from qorageom import geometry_from_spec
-from qorageom.spec import Spec
+from qorageom.adapters.spec import Spec, geometry_from_spec
 
 GOLDEN = Path(__file__).with_name("data") / "scan_geometry_golden.json"
 SHAPE = (32, 32, 16)

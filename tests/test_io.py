@@ -2,7 +2,7 @@ import numpy as np
 import pytest
 from scipy.io import savemat
 
-from qorageom.io import dump_h5, load_h5, load_mat, load_tif_stack
+from qorageom.adapters.frames import dump_h5, load_h5, load_mat, load_tif_stack
 
 
 def test_load_mat_transposes_to_frame_first(tmp_path):

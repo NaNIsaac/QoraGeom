@@ -20,7 +20,7 @@ from qorageom.geometry import (
     tth_to_q,
     wavelength,
 )
-from qorageom.scan_geometry import ScanGeometry, geometry_from_spec, rocking_scan_geometry
+from qorageom.scan_geometry import ScanGeometry, rocking_scan_geometry
 from qorageom.strain import displacement_gradient, strain
 
 __all__ = [
@@ -36,7 +36,6 @@ __all__ = [
     "displacement_gradient",
     "energy_basis",
     "energy_to_kev",
-    "geometry_from_spec",
     "get_detector",
     "get_diffractometer",
     "lab_voxel_size",
@@ -54,3 +53,19 @@ __all__ = [
     "tth_to_q",
     "wavelength",
 ]
+
+
+def __getattr__(name):
+    # qorageom.geometry_from_spec stays importable while callers move to the SPEC adapter
+    if name == "geometry_from_spec":
+        import warnings
+
+        from qorageom.adapters import spec
+
+        warnings.warn(
+            "qorageom.geometry_from_spec moved to qorageom.adapters.spec.geometry_from_spec",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return spec.geometry_from_spec
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")

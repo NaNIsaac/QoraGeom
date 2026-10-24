@@ -51,7 +51,7 @@ line-length = 100
 
 # violations present when ruff became mandatory in CI; remove entries as they are fixed
 [tool.ruff.lint.extend-per-file-ignores]
-"src/qorageom/spec.py" = ["PYI034"]
+"src/qorageom/adapters/spec.py" = ["PYI034"]
 
 [tool.uv.sources]
 qoraphase = { git = "https://github.com/NaNIsaac/QoraPhase" }

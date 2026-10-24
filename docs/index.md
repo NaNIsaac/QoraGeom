@@ -48,7 +48,7 @@ The README is the full guide. Its sections:
 
 - [Usage](../README.md#usage): reciprocal bases for theta, phi and energy scans, `direct_basis`, `resample_to_lab`, diffractometers, strain from a wrapped phase and the SPEC parser, each with its output.
 - [Modules](../README.md#modules): every public function by module.
-- [From a SPEC scan to a lab-frame volume](../README.md#from-a-spec-scan-to-a-lab-frame-volume): `geometry_from_spec` and `ScanGeometry`.
+- [From a SPEC scan to a lab-frame volume](../README.md#from-a-spec-scan-to-a-lab-frame-volume): `rocking_scan_geometry`, `geometry_from_spec` and `ScanGeometry`.
 - [From diffraction pattern to strain](../README.md#from-diffraction-pattern-to-strain).
 - [Tests](../README.md#tests) and [Citation](../README.md#citation).
 

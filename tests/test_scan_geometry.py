@@ -4,13 +4,12 @@ import pytest
 from qorageom import (
     direct_basis,
     energy_basis,
-    geometry_from_spec,
     reciprocal_basis,
     rocking_scan_geometry,
     wavelength,
 )
+from qorageom.adapters.spec import Spec, geometry_from_spec
 from qorageom.detector import Detector
-from qorageom.spec import Spec
 
 HEADER = """\
 #F geom.spec
