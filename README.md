@@ -15,9 +15,17 @@ pixel of a flat detector on a tilted arm, builds the BCDI reciprocal-space basis
 for a rocking scan, reads SPEC data files and loads detector frames from .mat,
 TIFF and HDF5.
 
+## Project boundary (current vs planned)
+
+**Current implementation:** QoraGeom contains diffraction geometry, coordinates and reciprocal-space utilities **and** legacy SPEC parsing and optional MAT/TIFF/HDF5 frame loaders. The README examples below describe the code as it works today.
+
+**Intended long-term boundary:** keep the reusable geometry/numerical core independent of experiment-file formats. SPEC and detector-frame readers can remain temporarily for compatibility while dedicated I/O and application layers take over. Do not remove or move existing import paths until downstream consumers (including [CXD](https://github.com/NaNIsaac/CXD)) are checked and migration/compatibility tests exist.
+
+This boundary is an architectural direction, **not** a claim that the file readers have already been removed.
+
 ## Install
 
-Requires Python 3.13+ with numpy and scipy; h5py, tifffile and pandas are optional extras. Not on PyPI; install from git.
+Requires Python 3.13+ with numpy and scipy; h5py, tifffile and pandas are optional extras. Not on PyPI yet; install from git. The first release will add `pip install qorageom`.
 
 **1. Install into a uv project, then check the import**
 
