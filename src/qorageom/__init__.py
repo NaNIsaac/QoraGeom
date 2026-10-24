@@ -20,7 +20,7 @@ from qorageom.geometry import (
     tth_to_q,
     wavelength,
 )
-from qorageom.scan_geometry import ScanGeometry, geometry_from_spec
+from qorageom.scan_geometry import ScanGeometry, geometry_from_spec, rocking_scan_geometry
 from qorageom.strain import displacement_gradient, strain
 
 __all__ = [
@@ -44,6 +44,7 @@ __all__ = [
     "q_to_tth",
     "reciprocal_basis",
     "resample_to_lab",
+    "rocking_scan_geometry",
     "rotate",
     "rotation_matrix",
     "shear_correction",

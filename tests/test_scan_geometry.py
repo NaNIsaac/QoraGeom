@@ -6,8 +6,10 @@ from qorageom import (
     energy_basis,
     geometry_from_spec,
     reciprocal_basis,
+    rocking_scan_geometry,
     wavelength,
 )
+from qorageom.detector import Detector
 from qorageom.spec import Spec
 
 HEADER = """\
@@ -211,3 +213,81 @@ def test_sample_offset_override(tmp_path):
     scan = _spec(tmp_path)
     shifted = geometry_from_spec(scan, shape=SHAPE, chi_offset=80.0)
     assert not np.allclose(shifted.B, geometry_from_spec(scan, shape=SHAPE).B)
+
+
+def test_plain_arguments_give_the_spec_result(tmp_path):
+    spec = geometry_from_spec(_spec(tmp_path), shape=SHAPE, binning=(2, 4, 3))
+    plain = rocking_scan_geometry(
+        SHAPE,
+        9.0,
+        0.5,
+        {"th": -71.35, "chi": 85.26, "phi": 12.0},
+        [37.0, -1.0],
+        "phi",
+        0.01,
+        diffractometer="34idc",
+        detector="34idcTIM2",
+        binning=(2, 4, 3),
+    )
+    for name in ("B", "A"):
+        assert np.array_equal(getattr(plain, name), getattr(spec, name))
+    assert plain.voxel_size == spec.voxel_size
+    assert (plain.axis, plain.detector, plain.shape) == (spec.axis, spec.detector, spec.shape)
+
+
+def test_plain_energy_scan_takes_kev_steps(tmp_path):
+    spec = geometry_from_spec(_spec(tmp_path, scan="energy"), shape=SHAPE)  # eV in the file
+    plain = rocking_scan_geometry(
+        SHAPE,
+        9.0,
+        0.5,
+        [-71.35, 85.26, 12.0],
+        [37.0, -1.0],
+        "energy",
+        0.0001,
+        diffractometer="34idc",
+        detector="34idcTIM2",
+    )
+    np.testing.assert_allclose(plain.B, spec.B, rtol=1e-12)
+    assert plain.axis == "energy"
+
+
+def test_plain_arguments_accept_a_custom_detector():
+    det = Detector("square", (100e-6, 100e-6), ("x+", "y-"), (128, 128))
+    geom = rocking_scan_geometry(
+        SHAPE,
+        9.0,
+        1.0,
+        [0.0, 90.0, 0.0],
+        [30.0, 0.0],
+        "th",
+        0.01,
+        diffractometer="34idc",
+        detector=det,
+    )
+    assert geom.detector == "square"
+    assert np.linalg.norm(geom.B[:, 0]) == pytest.approx(100e-6 / (LAM * 1.0))
+
+
+@pytest.mark.parametrize(
+    ("sample", "rock", "match"),
+    [
+        ({"th": 0.0, "chi": 90.0}, "th", "missing"),
+        ({"th": 0.0, "chi": 90.0, "phi": 0.0, "mu": 1.0}, "th", "unknown"),
+        ([0.0, 90.0], "th", "3 values"),
+        ([0.0, 90.0, 0.0], "Phi", "cannot rock"),
+    ],
+)
+def test_plain_arguments_reject_bad_angles(sample, rock, match):
+    with pytest.raises(ValueError, match=match):
+        rocking_scan_geometry(
+            SHAPE,
+            9.0,
+            1.0,
+            sample,
+            [30.0, 0.0],
+            rock,
+            0.01,
+            diffractometer="34idc",
+            detector="34idcTIM2",
+        )

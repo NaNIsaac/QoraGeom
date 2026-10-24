@@ -8,6 +8,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, TextIO
 
+from qorageom.diffractometer import _normalize_motor
 from qorageom.geometry import energy_to_kev
 
 logger = logging.getLogger(__name__)
@@ -40,14 +41,6 @@ def _xml_to_dict(element: ET.Element) -> Any:
         else:
             result[tag] = child_data
     return result
-
-
-_MOTOR_ALIASES = {"del": "delta", "gam": "gamma", "th": "theta", "en": "energy"}
-
-
-def _normalize_motor(name: str) -> str:
-    name = re.sub(r"[^a-z0-9]", "", name.lower())
-    return _MOTOR_ALIASES.get(name, name)
 
 
 @dataclass(frozen=True)
