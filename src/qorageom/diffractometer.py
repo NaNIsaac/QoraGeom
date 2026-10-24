@@ -1,6 +1,5 @@
 """Diffractometer circle layouts in xrayutilities axis notation ('y+', 'z-', ...)."""
 
-import re
 from dataclasses import dataclass
 
 import numpy as np
@@ -8,13 +7,6 @@ import numpy as np
 from qorageom.geometry import rotation_matrix
 
 _AXES = {"x": (1.0, 0.0, 0.0), "y": (0.0, 1.0, 0.0), "z": (0.0, 0.0, 1.0)}
-_MOTOR_ALIASES = {"del": "delta", "gam": "gamma", "th": "theta", "en": "energy"}
-
-
-def _normalize_motor(name: str) -> str:
-    """Motor name without case or punctuation, with the del/gam/th/en short forms expanded."""
-    name = re.sub(r"[^a-z0-9]", "", name.lower())
-    return _MOTOR_ALIASES.get(name, name)
 
 
 def axis_vector(axis: str) -> np.ndarray:
