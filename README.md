@@ -2,6 +2,10 @@
 
 [![Tests](https://github.com/NaNIsaac/QoraGeom/actions/workflows/ci.yml/badge.svg)](https://github.com/NaNIsaac/QoraGeom/actions/workflows/ci.yml) [![License: MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 
+<img src="https://raw.githubusercontent.com/NaNIsaac/QoraGeom/main/docs/media/tth_map.png" width="720" alt="2θ contours and |q| of every pixel of a flat detector, with the arm at 0° and tilted by 25°">
+
+Per-pixel 2θ and |q| from `tth_map` for one detector at two arm tilts ([script](docs/media/make_figure.py)).
+
 **X-ray diffraction geometry, SPEC parsing and detector-frame loaders for Python.**
 
 QoraGeom handles the geometry and file-reading steps of analysing X-ray
