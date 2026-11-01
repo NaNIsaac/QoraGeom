@@ -27,7 +27,7 @@ Run this from the directory where you created `qorageom-demo`:
 
 <!-- test console -->
 ```console
-$ uv run --directory qorageom-demo python -c "from qorageom import wavelength, tth_to_q; lam = wavelength(8.04); print('wavelength: %.5f angstrom' % lam); print('q: %.5f inverse angstrom' % tth_to_q(30, lam))"
+$ uv run -q --directory qorageom-demo python -c "from qorageom import wavelength, tth_to_q; lam = wavelength(8.04); print('wavelength: %.5f angstrom' % lam); print('q: %.5f inverse angstrom' % tth_to_q(30, lam))"
 wavelength: 1.54209 angstrom
 q: 2.10909 inverse angstrom
 ```
