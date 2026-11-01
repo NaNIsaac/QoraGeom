@@ -2,7 +2,49 @@
   "sidebar": [
     {
       "text": "Getting Started",
-      "items": [{ "text": "Overview", "link": "index.md" }]
+      "items": [
+        {
+          "text": "Overview",
+          "link": "index.md"
+        },
+        {
+          "text": "Installation",
+          "link": "install.md"
+        },
+        {
+          "text": "Tutorial",
+          "link": "tutorial.md"
+        }
+      ]
+    },
+    {
+      "text": "Guides",
+      "items": [
+        {
+          "text": "Geometry examples",
+          "link": "guides/geometry-and-io.md"
+        },
+        {
+          "text": "SPEC and frame readers",
+          "link": "guides/file-readers.md"
+        },
+        {
+          "text": "BCDI pipeline",
+          "link": "guides/pipelines.md"
+        },
+        {
+          "text": "Project boundary",
+          "link": "guides/boundary.md"
+        },
+        {
+          "text": "Figure reproduction",
+          "link": "media/README.md"
+        },
+        {
+          "text": "Changelog",
+          "link": "https://github.com/NaNIsaac/QoraGeom/blob/main/CHANGELOG.md"
+        }
+      ]
     }
   ]
 }
