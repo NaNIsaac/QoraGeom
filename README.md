@@ -8,6 +8,24 @@ X-ray diffraction geometry, SPEC parsing and detector-frame loaders for Python.
 
 Per-pixel 2θ and |q| from `tth_map` at arm tilts of 0° and 25° ([reproduce the figure](docs/media/README.md)).
 
+<!-- overview:start -->
+Full documentation: [QoraGeom](https://nanisaac.github.io/docs/qorageom/).
+
+QoraGeom converts photon energy, wavelength, 2θ, |q| and d-spacing, computes per-pixel detector
+geometry and builds BCDI reciprocal-space bases. Version 0.1.0 also includes legacy SPEC parsing
+and optional MAT, TIFF and HDF5 loaders. It does not reconstruct diffraction data;
+phase retrieval is [QoraPhase](https://github.com/NaNIsaac/QoraPhase).
+
+Start with [installation](docs/install.md) and the [tutorial](docs/tutorial.md).
+Continue with [geometry examples](docs/guides/geometry-and-io.md),
+[SPEC and frame readers](docs/guides/file-readers.md), [BCDI pipeline](docs/guides/pipelines.md), or the [project boundary](docs/guides/boundary.md).
+The documentation hub generates the Python API from the package docstrings.
+
+See the [changelog](https://github.com/NaNIsaac/QoraGeom/blob/main/CHANGELOG.md),
+[citation](https://github.com/NaNIsaac/QoraGeom/blob/main/CITATION.cff) and
+[figure reproduction](docs/media/README.md).
+<!-- overview:end -->
+
 ## Install
 
 Requires Python 3.13 or later. [QoraGeom 0.1.0 is on PyPI](https://pypi.org/project/qorageom/).
